@@ -1,0 +1,55 @@
+{
+  "app": {
+    "title": "RGPH 2024 - Djibouti",
+    "fullTitle": "Recensement Général de la Population et de l'Habitat 2024",
+    "subtitle": "République de Djibouti"
+  },
+  "nav": {
+    "home": "Accueil",
+    "thematicMaps": "Cartes thématiques",
+    "keyFigures": "Chiffres clés 2024",
+    "tables": "Tableaux RGPH 2024",
+    "concepts": "Concepts et définitions"
+  },
+  "map": {
+    "zoomIn": "Zoom avant",
+    "zoomOut": "Zoom arrière",
+    "regions": "Régions",
+    "districts": "Districts",
+    "communes": "Communes",
+    "population": "Population",
+    "country": "République de Djibouti"
+  },
+  "sidebar": {
+    "searchPlaceholder": "Rechercher un indicateur...",
+    "themes": "Indicateurs selon le thème"
+  },
+  "themes": {
+    "demographie": "Démographie",
+    "caracteristiques-economiques": "Caractéristiques économiques",
+    "education": "Éducation et analphabétisme",
+    "sante": "Santé",
+    "habitat": "Conditions d'habitat",
+    "langue-maternelle": "Langue maternelle",
+    "pauvrete": "Pauvreté multidimensionnelle"
+  },
+  "common": {
+    "total": "Total",
+    "male": "Masculin",
+    "female": "Féminin",
+    "urban": "Urbain",
+    "rural": "Rural",
+    "source": "Source",
+    "year": "Année",
+    "loading": "Chargement...",
+    "noData": "Aucune donnée disponible",
+    "download": "Télécharger",
+    "print": "Imprimer",
+    "share": "Partager"
+  },
+  "footer": {
+    "copyright": "© 2024 Institut National de la Statistique de Djibouti (INSD)",
+    "contact": "Contact",
+    "legalNotice": "Mentions légales"
+  }
+}

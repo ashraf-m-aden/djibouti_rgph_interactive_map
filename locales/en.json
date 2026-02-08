@@ -1,0 +1,55 @@
+{
+  "app": {
+    "title": "RGPH 2024 - Djibouti",
+    "fullTitle": "General Population and Housing Census 2024",
+    "subtitle": "Republic of Djibouti"
+  },
+  "nav": {
+    "home": "Home",
+    "thematicMaps": "Thematic Maps",
+    "keyFigures": "Key Figures 2024",
+    "tables": "RGPH 2024 Tables",
+    "concepts": "Concepts and Definitions"
+  },
+  "map": {
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "regions": "Regions",
+    "districts": "Districts",
+    "communes": "Communes",
+    "population": "Population",
+    "country": "Republic of Djibouti"
+  },
+  "sidebar": {
+    "searchPlaceholder": "Search for an indicator...",
+    "themes": "Indicators by theme"
+  },
+  "themes": {
+    "demographie": "Demographics",
+    "caracteristiques-economiques": "Economic characteristics",
+    "education": "Education and illiteracy",
+    "sante": "Health",
+    "habitat": "Housing conditions",
+    "langue-maternelle": "Mother tongue",
+    "pauvrete": "Multidimensional poverty"
+  },
+  "common": {
+    "total": "Total",
+    "male": "Male",
+    "female": "Female",
+    "urban": "Urban",
+    "rural": "Rural",
+    "source": "Source",
+    "year": "Year",
+    "loading": "Loading...",
+    "noData": "No data available",
+    "download": "Download",
+    "print": "Print",
+    "share": "Share"
+  },
+  "footer": {
+    "copyright": "© 2024 National Institute of Statistics of Djibouti (INSD)",
+    "contact": "Contact",
+    "legalNotice": "Legal Notice"
+  }
+}

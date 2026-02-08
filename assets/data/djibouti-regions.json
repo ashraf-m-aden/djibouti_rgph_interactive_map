@@ -1,0 +1,83 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "code": "DJ-DJ",
+        "name_fr": "Djibouti",
+        "name_ar": "جيبوتي",
+        "name_en": "Djibouti"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[43.10, 11.52], [43.10, 11.63], [43.18, 11.66], [43.22, 11.62], [43.20, 11.55], [43.17, 11.52], [43.10, 11.52]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "code": "DJ-AR",
+        "name_fr": "Arta",
+        "name_ar": "أرتا",
+        "name_en": "Arta"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[42.65, 11.35], [42.65, 11.58], [42.85, 11.60], [43.10, 11.52], [43.17, 11.52], [43.10, 11.45], [43.05, 11.35], [42.90, 11.30], [42.65, 11.35]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "code": "DJ-AS",
+        "name_fr": "Ali Sabieh",
+        "name_ar": "علي صبيح",
+        "name_en": "Ali Sabieh"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[42.50, 10.95], [42.50, 11.15], [42.65, 11.35], [42.90, 11.30], [43.05, 11.35], [43.15, 11.20], [43.30, 11.10], [43.15, 10.95], [42.80, 10.95], [42.50, 10.95]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "code": "DJ-DI",
+        "name_fr": "Dikhil",
+        "name_ar": "دخيل",
+        "name_en": "Dikhil"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[42.00, 11.00], [42.00, 11.40], [42.30, 11.55], [42.65, 11.58], [42.65, 11.35], [42.50, 11.15], [42.50, 10.95], [42.20, 10.95], [42.00, 11.00]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "code": "DJ-TA",
+        "name_fr": "Tadjourah",
+        "name_ar": "تاجورة",
+        "name_en": "Tadjourah"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[42.00, 11.40], [42.08, 11.70], [42.20, 11.95], [42.40, 12.05], [42.70, 11.95], [42.90, 11.85], [43.00, 11.75], [42.85, 11.60], [42.65, 11.58], [42.30, 11.55], [42.00, 11.40]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "code": "DJ-OB",
+        "name_fr": "Obock",
+        "name_ar": "أوبوك",
+        "name_en": "Obock"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[42.70, 11.95], [42.90, 12.10], [43.10, 12.30], [43.30, 12.40], [43.45, 12.30], [43.40, 12.10], [43.30, 11.90], [43.22, 11.75], [43.18, 11.66], [43.10, 11.63], [43.00, 11.75], [42.90, 11.85], [42.70, 11.95]]]
+      }
+    }
+  ]
+}

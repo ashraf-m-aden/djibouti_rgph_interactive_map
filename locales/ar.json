@@ -1,0 +1,55 @@
+{
+  "app": {
+    "title": "الإحصاء العام 2024 - جيبوتي",
+    "fullTitle": "التعداد العام للسكان والإسكان 2024",
+    "subtitle": "جمهورية جيبوتي"
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "thematicMaps": "الخرائط الموضوعية",
+    "keyFigures": "الأرقام الرئيسية 2024",
+    "tables": "جداول الإحصاء 2024",
+    "concepts": "المفاهيم والتعريفات"
+  },
+  "map": {
+    "zoomIn": "تكبير",
+    "zoomOut": "تصغير",
+    "regions": "المناطق",
+    "districts": "المقاطعات",
+    "communes": "البلديات",
+    "population": "السكان",
+    "country": "جمهورية جيبوتي"
+  },
+  "sidebar": {
+    "searchPlaceholder": "البحث عن مؤشر...",
+    "themes": "المؤشرات حسب الموضوع"
+  },
+  "themes": {
+    "demographie": "الديموغرافيا",
+    "caracteristiques-economiques": "الخصائص الاقتصادية",
+    "education": "التعليم والأمية",
+    "sante": "الصحة",
+    "habitat": "ظروف السكن",
+    "langue-maternelle": "اللغة الأم",
+    "pauvrete": "الفقر متعدد الأبعاد"
+  },
+  "common": {
+    "total": "المجموع",
+    "male": "ذكر",
+    "female": "أنثى",
+    "urban": "حضري",
+    "rural": "ريفي",
+    "source": "المصدر",
+    "year": "السنة",
+    "loading": "جاري التحميل...",
+    "noData": "لا توجد بيانات متاحة",
+    "download": "تحميل",
+    "print": "طباعة",
+    "share": "مشاركة"
+  },
+  "footer": {
+    "copyright": "© 2024 المعهد الوطني للإحصاء في جيبوتي",
+    "contact": "اتصل بنا",
+    "legalNotice": "الإشعارات القانونية"
+  }
+}

@@ -1,0 +1,669 @@
+// ============================================
+// RGPH Djibouti 2024 — Design System
+// ============================================
+
+// --- Colors (inspired by Djibouti flag + official style) ---
+$primary: #1A9553;         // Green from Djibouti flag
+$primary-dark: #14743F;
+$primary-light: #E8F5E9;
+$secondary: #6AB2E7;       // Light blue from flag
+$secondary-dark: #1565C0;
+$accent: #D32F2F;          // Red star accent
+$gold: #C8A951;            // Sandy/gold desert tone
+
+$bg-body: #F5F6FA;
+$bg-white: #FFFFFF;
+$bg-sidebar: #FAFBFC;
+$border-color: #E0E3EB;
+$text-primary: #1A1D26;
+$text-secondary: #5A5F72;
+$text-muted: #8B90A0;
+
+// --- Typography ---
+$font-body: 'Source Sans 3', sans-serif;
+$font-arabic: 'Noto Sans Arabic', sans-serif;
+
+// --- Spacing ---
+$sidebar-width: 280px;
+$header-height: 60px;
+$navbar-height: 48px;
+
+// --- Mixins ---
+@mixin rtl {
+  [dir="rtl"] & {
+    @content;
+  }
+}
+
+// --- Reset & Base ---
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: $font-body;
+  background: $bg-body;
+  color: $text-primary;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+[dir="rtl"] body {
+  font-family: $font-arabic, $font-body;
+}
+
+// --- Header ---
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: $header-height;
+  padding: 0 24px;
+  background: $bg-white;
+  border-bottom: 2px solid $primary;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  &__logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    img {
+      height: 40px;
+    }
+
+    &-text {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: $text-secondary;
+      line-height: 1.3;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+  }
+
+  &__nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    a {
+      padding: 8px 16px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: $text-secondary;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: $primary-light;
+        color: $primary-dark;
+      }
+
+      &.active {
+        background: $primary;
+        color: white;
+      }
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+// --- Language Switcher ---
+.lang-switcher {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: #F0F1F5;
+  border-radius: 8px;
+  padding: 3px;
+
+  &__btn {
+    padding: 5px 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background: transparent;
+    color: $text-secondary;
+    transition: all 0.2s ease;
+
+    &--active {
+      background: $bg-white;
+      color: $primary;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    &:hover:not(&--active) {
+      color: $text-primary;
+    }
+  }
+}
+
+// --- Main Layout ---
+.app-layout {
+  display: flex;
+  min-height: calc(100vh - #{$header-height});
+}
+
+// --- Sidebar ---
+.app-sidebar {
+  width: $sidebar-width;
+  background: $bg-white;
+  border-right: 1px solid $border-color;
+  overflow-y: auto;
+  position: sticky;
+  top: $header-height;
+  height: calc(100vh - #{$header-height});
+  flex-shrink: 0;
+
+  @include rtl {
+    border-right: none;
+    border-left: 1px solid $border-color;
+  }
+
+  &__header {
+    padding: 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: $text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  &__search {
+    padding: 0 16px 16px;
+
+    input {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 0.875rem;
+      border: 1px solid $border-color;
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: inherit;
+
+      &::placeholder {
+        color: $text-muted;
+      }
+
+      &:focus {
+        border-color: $primary;
+        box-shadow: 0 0 0 3px rgba($primary, 0.1);
+      }
+    }
+  }
+}
+
+// --- Theme Tree ---
+.theme-tree {
+  padding: 0 8px 16px;
+
+  &__group {
+    margin-bottom: 4px;
+  }
+
+  &__parent {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: $primary-dark;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.15s;
+
+    &:hover {
+      background: $primary-light;
+    }
+
+    .mdi {
+      font-size: 1rem;
+      opacity: 0.6;
+    }
+  }
+
+  &__children {
+    padding-left: 24px;
+
+    @include rtl {
+      padding-left: 0;
+      padding-right: 24px;
+    }
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    font-size: 0.825rem;
+    color: $text-secondary;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.15s;
+
+    &:hover {
+      background: #F0F7FF;
+      color: $secondary-dark;
+    }
+
+    &--active {
+      background: $primary-light;
+      color: $primary-dark;
+      font-weight: 500;
+    }
+
+    .mdi {
+      font-size: 0.875rem;
+      opacity: 0.5;
+    }
+  }
+}
+
+// --- Main Content ---
+.app-main {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+
+// --- Map Container ---
+.map-container {
+  width: 100%;
+  height: calc(100vh - #{$header-height});
+  position: relative;
+
+  .leaflet-container {
+    width: 100%;
+    height: 100%;
+    background: #D4E6F1;
+    z-index: 1;
+  }
+}
+
+// --- Map Controls ---
+.map-controls {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  @include rtl {
+    left: auto;
+    right: 16px;
+  }
+}
+
+.map-level-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 8px 16px;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+
+  &__label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: $primary-dark;
+    padding: 6px 14px;
+    background: $primary;
+    color: white;
+    border-radius: 6px;
+  }
+
+  &__btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border: 1px solid $border-color;
+    border-radius: 6px;
+    background: white;
+    color: $text-secondary;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: $primary;
+      color: $primary;
+    }
+
+    &--active {
+      background: $primary;
+      color: white;
+      border-color: $primary;
+    }
+  }
+}
+
+// --- Map Legend ---
+.map-legend {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  z-index: 500;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 14px 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+
+  @include rtl {
+    right: auto;
+    left: 24px;
+  }
+
+  &__title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: $text-secondary;
+    margin-bottom: 10px;
+  }
+
+  &__gradient {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &-bar {
+      width: 200px;
+      height: 12px;
+      border-radius: 3px;
+      background: linear-gradient(to right, #FEE5D9, #FCBBA1, #FC9272, #FB6A4A, #DE2D26, #A50F15);
+    }
+
+    &-labels {
+      display: flex;
+      justify-content: space-between;
+      width: 200px;
+      margin-top: 4px;
+      font-size: 0.7rem;
+      color: $text-muted;
+    }
+  }
+}
+
+// --- Map Toolbar (right side) ---
+.map-toolbar {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  @include rtl {
+    right: auto;
+    left: 16px;
+  }
+
+  &__btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.95);
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    color: $text-secondary;
+    font-size: 1.1rem;
+    transition: all 0.2s;
+
+    &:hover {
+      background: $primary;
+      color: white;
+    }
+  }
+}
+
+// --- Region Tooltip ---
+.region-tooltip {
+  padding: 10px 14px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  border: none;
+  font-family: $font-body;
+
+  &__name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: $text-primary;
+    margin-bottom: 4px;
+  }
+
+  &__value {
+    font-size: 0.8rem;
+    color: $text-secondary;
+
+    strong {
+      color: $primary-dark;
+      font-size: 1rem;
+    }
+  }
+}
+
+// --- Charts Section ---
+.charts-panel {
+  padding: 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+}
+
+.chart-card {
+  background: $bg-white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  border: 1px solid $border-color;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+
+    h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: $text-primary;
+    }
+  }
+
+  &__body {
+    min-height: 250px;
+  }
+}
+
+// --- Key Figures ---
+.key-figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  padding: 24px;
+}
+
+.key-figure-card {
+  background: $bg-white;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  border: 1px solid $border-color;
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  }
+
+  &__icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    font-size: 1.4rem;
+    color: white;
+  }
+
+  &__value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: $text-primary;
+    margin-bottom: 4px;
+  }
+
+  &__label {
+    font-size: 0.8rem;
+    color: $text-secondary;
+    line-height: 1.4;
+  }
+}
+
+// --- RGPH Badge ---
+.rgph-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+
+  &__year {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: $primary;
+  }
+
+  &__text {
+    font-size: 0.7rem;
+    color: $text-secondary;
+    line-height: 1.3;
+    font-weight: 500;
+  }
+}
+
+// --- Data Table ---
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+
+  th {
+    background: #F0F2F8;
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: $text-secondary;
+    border-bottom: 2px solid $border-color;
+    white-space: nowrap;
+
+    @include rtl {
+      text-align: right;
+    }
+  }
+
+  td {
+    padding: 10px 16px;
+    border-bottom: 1px solid #F0F2F8;
+    color: $text-primary;
+  }
+
+  tr:hover td {
+    background: #FAFBFE;
+  }
+}
+
+// --- Responsive ---
+@media (max-width: 1024px) {
+  .app-sidebar {
+    width: 240px;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-sidebar {
+    display: none;
+  }
+
+  .app-header__nav {
+    display: none;
+  }
+
+  .charts-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+// --- Scrollbar ---
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CCC;
+  border-radius: 3px;
+}
+
+// --- Transitions ---
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 0.3s ease;
+}
+
+.slide-enter-from {
+  transform: translateX(-20px);
+}
+
+.slide-leave-to {
+  transform: translateX(-20px);
+}
