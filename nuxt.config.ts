@@ -56,12 +56,16 @@ export default defineNuxtConfig({
   ],
   
   runtimeConfig: {
+    // Prive (serveur uniquement) : URL de l'API joignable depuis le conteneur
+    // frontend pendant le SSR. Non defini en local -> on retombe sur apiBase.
+    // Cf. composables/useApiBase.ts
+    apiBaseInternal: process.env.NUXT_API_BASE_INTERNAL || '',
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:5000/api',
     },
   },
 
-  // Important pour Render
+  // node-server : l'app tourne derriere nginx sur l'EC2 (cf. Dockerfile).
   nitro: {
     preset: 'node-server',
     compressPublicAssets: true,

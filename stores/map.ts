@@ -39,9 +39,9 @@ export const useMapStore = defineStore('map', {
       if (this.geoData[level]) return this.geoData[level];
       
       try {
-        const config = useRuntimeConfig();
+        const apiBase = useApiBase();
         const { data } = await useFetch<{ success: boolean; data: GeoJSONData }>(
-          `${config.public.apiBase}/geo/${level}`
+          `${apiBase}/geo/${level}`
         );
         
         if (data.value?.success) {
@@ -57,7 +57,7 @@ export const useMapStore = defineStore('map', {
     async fetchMapData(indicatorCode: string, options: FetchMapDataOptions = {}) {
       this.loading = true;
       try {
-        const config = useRuntimeConfig();
+        const apiBase = useApiBase();
         const params = new URLSearchParams({
           level: options.level || this.currentLevel,
           ...(options.disaggregation ? { disaggregation: JSON.stringify(options.disaggregation) } : {}),
@@ -72,7 +72,7 @@ export const useMapStore = defineStore('map', {
             };
           };
         }>(
-          `${config.public.apiBase}/indicators/map-data/${indicatorCode}?${params}`
+          `${apiBase}/indicators/map-data/${indicatorCode}?${params}`
         );
 
         if (data.value?.success) {

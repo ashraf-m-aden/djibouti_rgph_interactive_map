@@ -18,11 +18,10 @@ import type {
 } from '~/types/api';
 
 export const useApi = () => {
-  const config = useRuntimeConfig();
-
   // Créer une instance personnalisée de $fetch
   const customFetch = $fetch.create({
-    baseURL: config.public.apiBase,
+    // URL differente en SSR et dans le navigateur, cf. useApiBase
+    baseURL: useApiBase(),
     headers: {
       'Content-Type': 'application/json',
     },
