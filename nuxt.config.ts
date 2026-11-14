@@ -55,19 +55,28 @@ export default defineNuxtConfig({
     '~/assets/scss/main.scss',
   ],
   
+  // SPA : aucun rendu serveur, tout s'execute dans le navigateur. L'image de
+  // production ne contient donc que des fichiers statiques servis par nginx
+  // (cf. Dockerfile), il n'y a pas de process Node en production.
+  ssr: false,
+
   runtimeConfig: {
-    // Prive (serveur uniquement) : URL de l'API joignable depuis le conteneur
-    // frontend pendant le SSR. Non defini en local -> on retombe sur apiBase.
-    // Cf. composables/useApiBase.ts
-    apiBaseInternal: process.env.NUXT_API_BASE_INTERNAL || '',
     public: {
+      // ATTENTION : en build statique, runtimeConfig.public est FIGE dans le
+      // bundle au moment du build. Cette URL ne peut donc pas etre changee au
+      // demarrage du conteneur : elle est passee en build-arg
+      // NUXT_PUBLIC_API_BASE (cf. Dockerfile et .github/workflows/deploy.yml).
+      //
+      // En production la valeur est "/api" : le site et l'API partagent le
+      // domaine, nginx route /api/ vers le backend. Une URL relative suffit
+      // puisque tous les appels partent du navigateur.
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:5000/api',
     },
   },
 
-  // node-server : l'app tourne derriere nginx sur l'EC2 (cf. Dockerfile).
+  // static : "nuxi generate" produit .output/public, servi par nginx.
   nitro: {
-    preset: 'node-server',
+    preset: 'static',
     compressPublicAssets: true,
   },
 

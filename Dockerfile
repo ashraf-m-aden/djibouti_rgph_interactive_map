@@ -1,14 +1,24 @@
 # ============================================================
-#  Stage 1 - Build Nuxt (SSR, preset node-server)
+#  Stage 1 - Build Nuxt (SPA statique : ssr: false, preset static)
 # ============================================================
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Le build ne fige aucune URL : NUXT_PUBLIC_API_BASE et NUXT_API_BASE_INTERNAL
-# sont lus au demarrage du conteneur via runtimeConfig. Aucun build-arg ici,
-# donc une meme image sert tous les environnements.
+# URL de l'API figee dans le bundle par "nuxi generate" : en build statique
+# runtimeConfig.public n'est plus lisible au demarrage, toute modification
+# exige donc un rebuild d'image.
+# Valeur par defaut "/api" : le site et l'API partagent le domaine, nginx
+# route /api/ vers le backend. Une URL relative suffit, tous les appels
+# partant du navigateur.
+ARG NUXT_PUBLIC_API_BASE=/api
+
+ENV NUXT_PUBLIC_API_BASE=$NUXT_PUBLIC_API_BASE
 ENV NODE_ENV=production
+
+# Une valeur vide ferait retomber la config sur http://localhost:5000/api,
+# qui ne resout rien chez le visiteur : mieux vaut echouer au build.
+RUN test -n "$NUXT_PUBLIC_API_BASE" || (echo "NUXT_PUBLIC_API_BASE build-arg vide" >&2; exit 1)
 
 COPY package*.json ./
 # npm ci : installation reproductible depuis le lockfile. Les devDependencies
@@ -16,32 +26,19 @@ COPY package*.json ./
 RUN npm ci --no-audit --no-fund
 
 COPY . .
-RUN npm run build
+RUN npx nuxi generate
 
 # ============================================================
-#  Stage 2 - Runtime
+#  Stage 2 - Serve avec Nginx
 # ============================================================
-FROM node:20-alpine
+FROM nginx:1.25-alpine
 
-WORKDIR /app
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/.output/public /usr/share/nginx/html
 
-ENV NODE_ENV=production
-# Nitro ecoute sur toutes les interfaces du conteneur ; c'est nginx sur l'hote
-# qui expose le service (le port n'est publie que sur 127.0.0.1).
-ENV NITRO_HOST=0.0.0.0
-ENV NITRO_PORT=3000
+EXPOSE 80
 
-# .output est autonome (Nitro y embarque ses dependances) : pas besoin de
-# recopier node_modules, l'image reste legere.
-COPY --from=builder /app/.output ./.output
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- http://localhost:80/health || exit 1
 
-USER node
-
-EXPOSE 3000
-
-# "localhost" resoudrait en ::1 (IPv6) alors que Nitro n'ecoute qu'en IPv4
-# dans le conteneur : on vise 127.0.0.1 explicitement.
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD wget -qO- http://127.0.0.1:3000/ >/dev/null 2>&1 || exit 1
-
-CMD ["node", ".output/server/index.mjs"]
+CMD ["nginx", "-g", "daemon off;"]

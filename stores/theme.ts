@@ -64,8 +64,8 @@ export const useThemeStore = defineStore('theme', {
     async fetchThemes() {
       this.loading = true;
       try {
-        const apiBase = useApiBase();
-        const { data } = await useFetch(`${apiBase}/themes`) as any;
+        const config = useRuntimeConfig();
+        const { data } = await useFetch(`${config.public.apiBase}/themes`) as any;
         if (data.value?.success) {
           this.themes = data.value.data;
         }

@@ -25,13 +25,17 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Aucun build-arg : les URL d'API sont lues au demarrage du conteneur
-      # (runtimeConfig Nuxt), donc l'image est independante de l'environnement.
+      # SPA statique : l'URL de l'API est figee dans le bundle au build.
+      # "/api" car le site et l'API partagent le domaine (nginx route /api/).
+      # Le secret permet de surcharger sans toucher au code si l'API devait
+      # repasser sur un domaine distinct.
       - name: Build & Push
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
+          build-args: |
+            NUXT_PUBLIC_API_BASE=${{ secrets.MAP_PUBLIC_API_BASE || '/api' }}
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/rgph-map-frontend:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/rgph-map-frontend:${{ steps.meta.outputs.sha_short }}
