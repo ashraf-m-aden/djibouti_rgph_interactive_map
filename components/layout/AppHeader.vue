@@ -34,7 +34,7 @@ const isHome = computed(() => route.path === '/' || route.path === '');
 .app-header__mark {
   width: 48px;
   height: 40px;
-  background: #1A9553;
+  background: #00185F;
   border-radius: 8px;
   display: flex;
   align-items: center;

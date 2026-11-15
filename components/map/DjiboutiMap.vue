@@ -456,7 +456,7 @@ onUnmounted(() => {
 .rgph-badge__year {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1A9553;
+  color: #00185F;
   display: block;
 }
 
@@ -494,9 +494,9 @@ onUnmounted(() => {
 }
 
 .map-level-selector__btn--active {
-  background: #1A9553;
+  background: #00185F;
   color: white;
-  border-color: #1A9553;
+  border-color: #00185F;
 }
 
 .map-toolbar {

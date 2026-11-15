@@ -205,7 +205,7 @@ watch(regionCode, loadRegionData);
 }
 
 .region-page__error {
-  color: #D32F2F;
+  color: #E60020;
 }
 
 .region-page__back {

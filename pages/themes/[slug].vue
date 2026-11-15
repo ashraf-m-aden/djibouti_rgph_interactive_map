@@ -546,7 +546,7 @@ watch(slug, () => {
   width: 50px;
   height: 50px;
   border: 4px solid #f3f3f3;
-  border-top: 4px solid #1a9553;
+  border-top: 4px solid #00185F;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
@@ -577,7 +577,7 @@ watch(slug, () => {
 }
 
 .indicator-selector:focus {
-  border-color: #1a9553;
+  border-color: #00185F;
 }
 
 .map-fullscreen {
@@ -657,7 +657,7 @@ watch(slug, () => {
 }
 
 .region-value-card {
-  background: linear-gradient(135deg, #1a9553 0%, #157a42 100%);
+  background: linear-gradient(135deg, #00185F 0%, #000D33 100%);
   color: white;
   padding: 2rem;
   border-radius: 8px;
@@ -752,7 +752,7 @@ watch(slug, () => {
 .sub-region-value {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #1a9553;
+  color: #00185F;
 }
 
 .region-comparison {
@@ -772,8 +772,8 @@ watch(slug, () => {
 }
 
 .comparison-bar.is-selected {
-  background: #e8f5e9;
-  border: 2px solid #1a9553;
+  background: #E6E9F2;
+  border: 2px solid #00185F;
 }
 
 .comparison-bar__header {
@@ -792,7 +792,7 @@ watch(slug, () => {
 .comparison-bar__value {
   font-size: 0.875rem;
   font-weight: 700;
-  color: #1a9553;
+  color: #00185F;
 }
 
 .comparison-bar__track {
@@ -804,14 +804,14 @@ watch(slug, () => {
 
 .comparison-bar__fill {
   height: 100%;
-  background: #1a9553;
+  background: #00185F;
   transition: width 0.3s ease;
 }
 
 .view-details-btn {
   width: 100%;
   padding: 1rem;
-  background: #1a9553;
+  background: #00185F;
   color: white;
   border: none;
   border-radius: 6px;
@@ -822,7 +822,7 @@ watch(slug, () => {
 }
 
 .view-details-btn:hover {
-  background: #157a42;
+  background: #000D33;
 }
 
 .popup-overlay {

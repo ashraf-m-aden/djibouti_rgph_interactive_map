@@ -208,7 +208,7 @@ onUnmounted(() => {
 }
 
 .app-sidebar__search input:focus {
-  border-color: #1A9553;
+  border-color: #00185F;
 }
 
 .search-results {
@@ -306,13 +306,13 @@ onUnmounted(() => {
 }
 
 .theme-tree__item--active {
-  background: #1A9553;
+  background: #00185F;
   color: white;
   font-weight: 600;
 }
 
 .theme-tree__item--active:hover {
-  background: #157a42;
+  background: #000D33;
 }
 
 .mdi {

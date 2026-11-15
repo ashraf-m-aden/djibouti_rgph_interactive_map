@@ -138,7 +138,7 @@ onMounted(loadData);
 .retry-btn {
   padding: 0.5rem 1rem;
   cursor: pointer;
-  background: #1a9553;
+  background: #00185F;
   color: white;
   border: none;
   border-radius: 4px;
@@ -146,7 +146,7 @@ onMounted(loadData);
 }
 
 .retry-btn:hover {
-  background: #157a42;
+  background: #000D33;
 }
 
 .no-data-banner {
