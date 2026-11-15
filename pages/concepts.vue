@@ -186,5 +186,17 @@ const entries: Array<{ key: string; themeSlug: string }> = [
     border-right: none;
     border-bottom: 1px solid #d7dbe6;
   }
+
+  .doc-page {
+    margin: 12px;
+  }
+
+  .doc-page__header {
+    padding: 18px 20px;
+  }
+
+  .glossary-content {
+    padding: 22px 20px 26px;
+  }
 }
 </style>

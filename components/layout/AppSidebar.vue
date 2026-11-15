@@ -1,5 +1,25 @@
 <template>
-  <aside class="app-sidebar">
+  <div
+    v-if="isOpen"
+    class="app-sidebar__overlay"
+    aria-hidden="true"
+    @click="close"
+  ></div>
+
+  <aside class="app-sidebar" :class="{ 'is-open': isOpen }">
+    <nav class="app-sidebar__mobile-nav">
+      <NuxtLink to="/" :class="{ 'is-active': isHome }">{{ $t('nav.thematicMaps') }}</NuxtLink>
+      <NuxtLink to="/chiffres-cles" :class="{ 'is-active': route.path === '/chiffres-cles' }">
+        {{ $t('nav.keyFigures') }}
+      </NuxtLink>
+      <NuxtLink to="/tableaux" :class="{ 'is-active': route.path === '/tableaux' }">
+        {{ $t('nav.tables') }}
+      </NuxtLink>
+      <NuxtLink to="/concepts" :class="{ 'is-active': route.path === '/concepts' }">
+        {{ $t('nav.concepts') }}
+      </NuxtLink>
+    </nav>
+
     <div class="app-sidebar__header">
       {{ $t('sidebar.themes') }}
     </div>
@@ -89,6 +109,9 @@ const route = useRoute();
 const { locale } = useI18n();
 const themeStore = useThemeStore();
 const { getLocalizedName } = useLocalizedContent();
+const { isOpen, close } = useMobileNav();
+
+const isHome = computed(() => route.path === '/' || route.path === '');
 
 const searchQuery = ref('');
 const searching = ref(false);
@@ -153,11 +176,13 @@ const goToTheme = (slug: string) => {
   if (!slug) return;
   themeStore.setActiveTheme(slug);
   searchQuery.value = '';
+  close();
   navigateTo(`/themes/${slug}`);
 };
 
 const goToRegion = (code: string) => {
   searchQuery.value = '';
+  close();
   navigateTo(`/regions/${code}`);
 };
 
@@ -331,5 +356,70 @@ onUnmounted(() => {
 
 .mdi {
   font-size: 1rem;
+}
+
+.app-sidebar__mobile-nav {
+  display: none;
+}
+
+.app-sidebar__overlay {
+  display: none;
+}
+
+/* Sous 768px le sidebar devient un volet coulissant (plutot que disparaitre
+   purement et simplement : la navigation par theme etait alors inaccessible
+   sur mobile) ouvert par le bouton hamburger de AppHeader.vue. */
+@media (max-width: 768px) {
+  .app-sidebar__overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(16, 19, 28, 0.4);
+    z-index: 1400;
+  }
+
+  .app-sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 86vw;
+    max-width: 320px;
+    height: 100vh;
+    z-index: 1500;
+    box-shadow: 2px 0 16px rgba(16, 19, 28, 0.2);
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+  }
+
+  [dir="rtl"] .app-sidebar {
+    left: auto;
+    right: 0;
+    transform: translateX(100%);
+  }
+
+  .app-sidebar.is-open {
+    transform: translateX(0);
+  }
+
+  .app-sidebar__mobile-nav {
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid #d7dbe6;
+    padding: 0.5rem 0;
+  }
+
+  .app-sidebar__mobile-nav a {
+    padding: 0.7rem 1.5rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #5a5f72;
+    text-decoration: none;
+  }
+
+  .app-sidebar__mobile-nav a.is-active {
+    color: #00185f;
+    font-weight: 700;
+  }
 }
 </style>

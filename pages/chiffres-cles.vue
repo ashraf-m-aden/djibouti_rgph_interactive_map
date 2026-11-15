@@ -186,5 +186,13 @@ watch(locale, loadKeyFigures);
   .kpi-grid .kpi-tile {
     border-right: none;
   }
+
+  .doc-page {
+    margin: 12px;
+  }
+
+  .doc-page__header {
+    padding: 18px 20px;
+  }
 }
 </style>

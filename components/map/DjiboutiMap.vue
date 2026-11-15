@@ -634,4 +634,64 @@ onUnmounted(() => {
     display: none;
   }
 }
+
+@media (max-width: 600px) {
+  /* Sans largeur maximale le bandeau du badge (intitule complet du
+     recensement) s'etirait au-dela de l'ecran sur mobile. */
+  .map-controls {
+    max-width: 48vw;
+    top: 8px;
+    left: 8px;
+  }
+
+  [dir="rtl"] .map-controls {
+    right: 8px;
+  }
+
+  .rgph-badge {
+    padding: 0.6rem 0.7rem;
+  }
+
+  .rgph-badge__year {
+    font-size: 1.05rem;
+  }
+
+  .rgph-badge__text {
+    font-size: 0.68rem;
+  }
+
+  .map-level-selector {
+    padding: 0.5rem 0.7rem;
+  }
+
+  .map-toolbar {
+    top: 8px;
+    right: 8px;
+  }
+
+  [dir="rtl"] .map-toolbar {
+    left: 8px;
+  }
+
+  .map-toolbar__btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .map-toolbar__btn .mdi {
+    font-size: 16px;
+  }
+
+  .map-legend {
+    bottom: 8px;
+    right: 8px;
+    min-width: 0;
+    width: calc(100vw - 16px);
+    max-width: 260px;
+  }
+
+  [dir="rtl"] .map-legend {
+    left: 8px;
+  }
+}
 </style>

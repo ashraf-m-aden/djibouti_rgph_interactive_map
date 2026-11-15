@@ -49,7 +49,8 @@
           <p>{{ $t('errors.indicatorNoData') }}</p>
         </div>
 
-        <table v-else class="data-table">
+        <div v-else class="data-table-scroll">
+          <table class="data-table">
           <thead>
             <tr>
               <th>{{ $t('common.regions') }}</th>
@@ -69,6 +70,7 @@
             </tr>
           </tfoot>
         </table>
+        </div>
       </div>
     </div>
   </div>
@@ -341,6 +343,10 @@ watch(locale, loadNav);
   cursor: not-allowed;
 }
 
+.data-table-scroll {
+  overflow-x: auto;
+}
+
 .data-table {
   width: 100%;
   border-collapse: collapse;
@@ -390,6 +396,19 @@ watch(locale, loadNav);
   .table-nav {
     border-right: none;
     border-bottom: 1px solid #d7dbe6;
+  }
+
+  .doc-page {
+    margin: 12px;
+  }
+
+  .doc-page__header {
+    padding: 18px 20px;
+  }
+
+  .table-panel__top {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 </style>

@@ -568,10 +568,9 @@ h1, h2, h3 {
 }
 
 @media (max-width: 768px) {
-  .app-sidebar {
-    display: none;
-  }
-
+  // Le sidebar devient un volet coulissant sous 767px (cf. AppSidebar.vue) :
+  // il ne doit plus etre retire du flux ici, sinon il reste cache meme
+  // ouvert.
   .app-header__nav {
     display: none;
   }

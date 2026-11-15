@@ -271,4 +271,14 @@ watch(regionCode, loadRegionData);
 .charts-panel {
   padding: 0;
 }
+
+@media (max-width: 600px) {
+  .region-page {
+    padding: 14px;
+  }
+
+  .region-page__header h1 {
+    font-size: 1.3rem;
+  }
+}
 </style>
