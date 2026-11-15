@@ -6,6 +6,7 @@
         <h1 class="theme-header__title">
           {{ isMapLoading ? $t('common.loading') : currentIndicatorName || $t('errors.noIndicator') }}
         </h1>
+
         <select
           v-if="mappableIndicators.length > 1"
           v-model="selectedIndicatorCode"

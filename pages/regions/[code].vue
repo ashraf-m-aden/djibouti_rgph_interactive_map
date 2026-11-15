@@ -8,8 +8,26 @@
     <!-- Region content -->
     <div v-else-if="region">
       <div class="region-page__header">
-        <h1>{{ getLocalizedName(region.name, region.code) }}</h1>
-        <p>{{ $t('app.fullTitle') }}</p>
+        <div class="region-page__header-text">
+          <h1>{{ getLocalizedName(region.name, region.code) }}</h1>
+          <p>{{ $t('app.fullTitle') }}</p>
+        </div>
+
+        <select
+          v-if="themes.length > 1"
+          v-model="selectedThemeSlug"
+          class="indicator-selector"
+          @change="onThemeChange"
+        >
+          <option value="">{{ $t('common.allThemes') }}</option>
+          <option
+            v-for="theme in themes"
+            :key="theme.slug"
+            :value="theme.slug"
+          >
+            {{ getLocalizedName(theme.name, theme.slug) }}
+          </option>
+        </select>
       </div>
 
       <!-- Chiffres cles : la superficie vient de la region, les effectifs des
@@ -64,8 +82,14 @@ const router = useRouter();
 const { t } = useI18n();
 const { getLocalizedName } = useLocalizedContent();
 const { formatCompact: formatValue } = useValueFormat();
+const themeStore = useThemeStore();
 
 const regionCode = computed(() => String(route.params.code));
+
+// Filtre par theme : la page chargeait tous les indicateurs de tous les
+// themes melanges, sans aucun moyen de les isoler.
+const themes = computed(() => themeStore.themes);
+const selectedThemeSlug = ref('');
 
 const region = ref<Region | null>(null);
 const indicators = ref<Indicator[]>([]);
@@ -148,6 +172,20 @@ const chartGroups = computed(() => {
     }));
 });
 
+const loadIndicators = async () => {
+  const api = useApi();
+
+  try {
+    const params = selectedThemeSlug.value ? { themeSlug: selectedThemeSlug.value } : {};
+    const response = await api.getRegionIndicators(regionCode.value, params);
+    if (response?.success && Array.isArray(response.data)) indicators.value = response.data;
+    else indicators.value = [];
+  } catch (error) {
+    console.error('Error loading region indicators:', error);
+    indicators.value = [];
+  }
+};
+
 const loadRegionData = async () => {
   loading.value = true;
   region.value = null;
@@ -164,18 +202,23 @@ const loadRegionData = async () => {
     return;
   }
 
-  try {
-    const response = await api.getRegionIndicators(regionCode.value);
-    if (response?.success && Array.isArray(response.data)) indicators.value = response.data;
-  } catch (error) {
-    console.error('Error loading region indicators:', error);
-  } finally {
-    loading.value = false;
-  }
+  await loadIndicators();
+  loading.value = false;
 };
 
-onMounted(loadRegionData);
-watch(regionCode, loadRegionData);
+const onThemeChange = () => {
+  loadIndicators();
+};
+
+onMounted(() => {
+  themeStore.fetchThemes();
+  loadRegionData();
+});
+
+watch(regionCode, () => {
+  selectedThemeSlug.value = '';
+  loadRegionData();
+});
 </script>
 
 <style scoped>
@@ -184,6 +227,10 @@ watch(regionCode, loadRegionData);
 }
 
 .region-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
   margin-bottom: 24px;
 }
 
@@ -192,6 +239,24 @@ watch(regionCode, loadRegionData);
   font-size: 1.6rem;
   font-weight: 600;
   color: #1A1D26;
+}
+
+.indicator-selector {
+  padding: 0.7rem 1rem;
+  border: 1px solid #d0d0d0;
+  border-radius: 2px;
+  font-size: 0.9rem;
+  font-family: 'Public Sans', sans-serif;
+  background: white;
+  cursor: pointer;
+  min-width: 220px;
+  outline: none;
+  transition: border-color 0.2s;
+  flex-shrink: 0;
+}
+
+.indicator-selector:focus {
+  border-color: #00185F;
 }
 
 .region-page__header p {
@@ -277,8 +342,18 @@ watch(regionCode, loadRegionData);
     padding: 14px;
   }
 
+  .region-page__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .region-page__header h1 {
     font-size: 1.3rem;
+  }
+
+  .indicator-selector {
+    width: 100%;
+    min-width: 0;
   }
 }
 </style>
