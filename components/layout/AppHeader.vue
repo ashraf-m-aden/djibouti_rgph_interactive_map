@@ -3,7 +3,7 @@
 
   <header class="app-header">
     <div class="app-header__brand">
-      <div class="app-header__mark">INSTAD</div>
+      <img class="app-header__logo" src="/logo.png" alt="INSTAD" />
       <div class="app-header__text">
         <span class="app-header__eyebrow">{{ $t('app.subtitle') }}</span>
         <span class="app-header__tagline">{{ $t('app.fullTitle') }}</span>

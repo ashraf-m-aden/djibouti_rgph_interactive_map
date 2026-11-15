@@ -110,19 +110,10 @@ h1, h2, h3 {
     min-width: 0;
   }
 
-  &__mark {
-    width: 48px;
-    height: 40px;
+  &__logo {
+    height: 34px;
+    width: auto;
     flex-shrink: 0;
-    background: $primary;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-family: $font-body;
-    font-weight: 700;
-    font-size: 0.62rem;
-    letter-spacing: 0.02em;
   }
 
   &__text {
