@@ -605,14 +605,14 @@ onUnmounted(() => {
 
 .map-legend__gradient {
   padding: 0 1rem;
+}
 
-  &:first-of-type {
-    padding-top: 0.85rem;
-  }
+.map-legend__gradient:first-of-type {
+  padding-top: 0.85rem;
+}
 
-  &:last-of-type {
-    padding-bottom: 0.85rem;
-  }
+.map-legend__gradient:last-of-type {
+  padding-bottom: 0.85rem;
 }
 
 .map-legend__gradient-bar {
