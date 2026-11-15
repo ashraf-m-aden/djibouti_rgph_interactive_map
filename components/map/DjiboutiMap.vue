@@ -445,9 +445,8 @@ onUnmounted(() => {
   color: #00185F;
 }
 
-// --- Panneaux techniques -------------------------------------------------
-// Bordures franches et bandeau d'en-tete plutot que cartes flottantes a
-// ombre : registre "legende de carte administrative", pas widget d'app.
+/* Panneaux techniques : bordures franches et bandeau d'en-tete plutot que
+   cartes flottantes a ombre (registre "legende de carte administrative"). */
 .map-controls {
   position: absolute;
   top: 16px;
