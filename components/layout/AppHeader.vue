@@ -13,7 +13,7 @@
     </button>
 
     <div class="app-header__brand">
-      <img class="app-header__logo" src="/logo.png" alt="INSTAD" />
+      <img class="app-header__logo" src="/logo-blue.png" alt="INSTAD" />
       <div class="app-header__text">
         <span class="app-header__eyebrow">{{ $t('app.subtitle') }}</span>
         <span class="app-header__tagline">{{ $t('app.fullTitle') }}</span>
@@ -93,6 +93,12 @@ watch(() => route.path, () => close());
   [dir="rtl"] .app-header__menu-btn {
     margin-right: 0;
     margin-left: 12px;
+  }
+
+  /* Sur mobile le logo passe dans le volet (AppSidebar.vue), ouvert par ce
+     bouton : pas besoin de le dupliquer dans un header deja etroit. */
+  .app-header__brand {
+    display: none;
   }
 }
 </style>

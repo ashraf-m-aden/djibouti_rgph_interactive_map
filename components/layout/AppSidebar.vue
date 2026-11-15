@@ -7,6 +7,10 @@
   ></div>
 
   <aside class="app-sidebar" :class="{ 'is-open': isOpen }">
+    <div class="app-sidebar__mobile-brand">
+      <img src="/logo-blue.png" alt="INSTAD" />
+    </div>
+
     <nav class="app-sidebar__mobile-nav">
       <NuxtLink to="/" :class="{ 'is-active': isHome }">{{ $t('nav.thematicMaps') }}</NuxtLink>
       <NuxtLink to="/chiffres-cles" :class="{ 'is-active': route.path === '/chiffres-cles' }">
@@ -358,6 +362,10 @@ onUnmounted(() => {
   font-size: 1rem;
 }
 
+.app-sidebar__mobile-brand {
+  display: none;
+}
+
 .app-sidebar__mobile-nav {
   display: none;
 }
@@ -400,6 +408,17 @@ onUnmounted(() => {
 
   .app-sidebar.is-open {
     transform: translateX(0);
+  }
+
+  .app-sidebar__mobile-brand {
+    display: block;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #d7dbe6;
+  }
+
+  .app-sidebar__mobile-brand img {
+    height: 28px;
+    width: auto;
   }
 
   .app-sidebar__mobile-nav {
