@@ -83,5 +83,40 @@
     "mainIndicators": "Main indicators",
     "area": "Area (km²)",
     "viewAllDetails": "View all details for {name}"
+  },
+  "concepts": {
+    "lead": "The RGPH-3 is an exhaustive census: it covers everyone residing in Djiboutian territory on the reference date, regardless of nationality, across the country's six administrative regions.",
+    "nav": {
+      "field": "Census scope",
+      "definitions": "Definitions",
+      "references": "References"
+    },
+    "referencesText": "National Statistics Institute of Djibouti (INSTAD), General Population and Housing Census (RGPH-3), 2024.",
+    "entries": {
+      "population": {
+        "term": "Resident population",
+        "def": "All persons whose usual place of residence is within the territory at the time of the census, including foreign residents."
+      },
+      "menage": {
+        "term": "Household",
+        "def": "A group of people, related or not, who usually live in the same dwelling and share at least one meal in common."
+      },
+      "activite": {
+        "term": "Activity rate (15 years and over)",
+        "def": "Share of the active population (employed or unemployed) within the total population aged 15 and over."
+      },
+      "chomage": {
+        "term": "Broad unemployment rate",
+        "def": "Share of people without a job and available to take one within the active population, including discouraged workers who did not actively seek employment."
+      },
+      "alphabetisation": {
+        "term": "Literacy rate",
+        "def": "Share of people aged 10 and over able to read and write a simple text in at least one language."
+      },
+      "pauvrete": {
+        "term": "Multidimensional poverty",
+        "def": "A poverty measure combining several simultaneous deprivations (education, health, living conditions), beyond monetary income alone."
+      }
+    }
   }
 }

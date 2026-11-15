@@ -16,12 +16,18 @@
       </div>
     </div>
 
-    <!-- Les entrees "Chiffres cles", "Tableaux" et "Concepts" pointaient
-         toutes vers "#" : aucune page correspondante n'existe (cf. AUDIT
-         F-06). Elles seront reintroduites avec leurs routes. -->
     <nav class="app-header__nav">
       <NuxtLink to="/" :class="{ active: isHome }">
         {{ $t('nav.thematicMaps') }}
+      </NuxtLink>
+      <NuxtLink to="/chiffres-cles" :class="{ active: route.path === '/chiffres-cles' }">
+        {{ $t('nav.keyFigures') }}
+      </NuxtLink>
+      <NuxtLink to="/tableaux" :class="{ active: route.path === '/tableaux' }">
+        {{ $t('nav.tables') }}
+      </NuxtLink>
+      <NuxtLink to="/concepts" :class="{ active: route.path === '/concepts' }">
+        {{ $t('nav.concepts') }}
       </NuxtLink>
     </nav>
 

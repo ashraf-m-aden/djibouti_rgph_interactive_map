@@ -83,5 +83,40 @@
     "mainIndicators": "Indicateurs principaux",
     "area": "Superficie (km²)",
     "viewAllDetails": "Voir tous les détails de {name}"
+  },
+  "concepts": {
+    "lead": "Le RGPH-3 est un recensement exhaustif : il couvre l'ensemble des personnes résidant sur le territoire djiboutien à la date de référence, quelle que soit leur nationalité, réparties sur les six régions administratives du pays.",
+    "nav": {
+      "field": "Champ du recensement",
+      "definitions": "Définitions",
+      "references": "Références"
+    },
+    "referencesText": "Institut National de la Statistique de Djibouti (INSTAD), Recensement Général de la Population et de l'Habitat (RGPH-3), 2024.",
+    "entries": {
+      "population": {
+        "term": "Population résidente",
+        "def": "Ensemble des personnes ayant leur lieu de résidence habituelle sur le territoire au moment du recensement, y compris les résidents étrangers."
+      },
+      "menage": {
+        "term": "Ménage",
+        "def": "Ensemble de personnes, apparentées ou non, qui vivent habituellement dans le même logement et partagent au moins un repas en commun."
+      },
+      "activite": {
+        "term": "Taux d'activité (15 ans et plus)",
+        "def": "Part de la population active (occupée ou au chômage) dans la population totale âgée de 15 ans et plus."
+      },
+      "chomage": {
+        "term": "Taux de chômage élargi",
+        "def": "Part des personnes sans emploi et disponibles pour en occuper un dans la population active, incluant les personnes découragées n'ayant pas recherché activement un emploi."
+      },
+      "alphabetisation": {
+        "term": "Taux d'alphabétisation",
+        "def": "Part des personnes de 10 ans et plus capables de lire et écrire un texte simple dans au moins une langue."
+      },
+      "pauvrete": {
+        "term": "Pauvreté multidimensionnelle",
+        "def": "Mesure de la pauvreté combinant plusieurs privations simultanées (éducation, santé, conditions de vie), au-delà du seul revenu monétaire."
+      }
+    }
   }
 }
