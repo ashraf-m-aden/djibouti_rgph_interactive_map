@@ -1,63 +1,55 @@
 <template>
-  <div style="padding: 24px;">
+  <div class="region-page">
     <!-- Loading state -->
-    <div v-if="loading" style="text-align: center; padding: 2rem;">
-      <p>Chargement...</p>
+    <div v-if="loading" class="region-page__state">
+      <p>{{ $t('common.loading') }}</p>
     </div>
 
     <!-- Region content -->
     <div v-else-if="region">
-      <div style="margin-bottom: 24px;">
-        <h1 style="font-size: 1.5rem; font-weight: 700; color: #1A1D26;">
-          {{ getLocalizedName(region.name) }}
-        </h1>
-        <p style="color: #5A5F72; font-size: 0.9rem;">
-          {{ $t('app.fullTitle') }}
-        </p>
+      <div class="region-page__header">
+        <h1>{{ getLocalizedName(region.name, region.code) }}</h1>
+        <p>{{ $t('app.fullTitle') }}</p>
       </div>
 
-      <!-- Key Figures -->
+      <!-- Chiffres cles : la superficie vient de la region, les effectifs des
+           indicateurs reellement presents en base. L'ancienne version lisait
+           region.population, champ absent du modele backend, si bien
+           qu'aucune carte "population" ni "densite" ne s'affichait jamais
+           (cf. AUDIT F-08). -->
       <div v-if="keyFigures.length" class="key-figures">
-        <div
-          v-for="figure in keyFigures"
-          :key="figure.code"
-          class="key-figure-card"
-        >
-          <div
-            class="key-figure-card__icon"
-            :style="{ background: figure.color || '#1A9553' }"
-          >
-            <span :class="['mdi', figure.icon || 'mdi-chart-bar']"></span>
+        <div v-for="figure in keyFigures" :key="figure.code" class="key-figure-card">
+          <div class="key-figure-card__icon" :style="{ background: figure.color }">
+            <span :class="['mdi', figure.icon]"></span>
           </div>
-          <div class="key-figure-card__value">
-            {{ formatNumber(figure.value) }}
-          </div>
-          <div class="key-figure-card__label">
-            {{ getLocalizedName(figure.label) }}
-          </div>
+          <div class="key-figure-card__value">{{ figure.display }}</div>
+          <div class="key-figure-card__label">{{ figure.label }}</div>
         </div>
       </div>
 
-      <!-- Charts -->
-      <div v-if="regionIndicators.length" class="charts-panel" style="padding: 24px 0;">
+      <!-- Un graphique par unite : melanger effectifs et pourcentages dans le
+           meme histogramme le rendait illisible (cf. AUDIT F-09). -->
+      <div v-if="chartGroups.length" class="charts-panel">
         <BarChart
-          title="Indicateurs principaux"
-          :labels="chartLabels"
-          :datasets="chartDatasets"
+          v-for="group in chartGroups"
+          :key="group.unit"
+          :title="group.title"
+          :labels="group.labels"
+          :datasets="[{ label: group.title, data: group.values }]"
+          :horizontal="true"
         />
       </div>
 
-      <!-- No data message -->
-      <div v-else style="text-align: center; padding: 2rem; color: #666;">
-        <p>Aucune donnée disponible pour cette région.</p>
+      <div v-else class="region-page__state">
+        <p>{{ $t('errors.regionNoData') }}</p>
       </div>
     </div>
 
     <!-- Error state -->
-    <div v-else style="text-align: center; padding: 2rem;">
-      <p style="color: #D32F2F;">Région non trouvée</p>
-      <button @click="$router.push('/')" style="margin-top: 1rem; padding: 0.5rem 1rem; cursor: pointer;">
-        Retour à l'accueil
+    <div v-else class="region-page__state">
+      <p class="region-page__error">{{ $t('errors.regionNotFound') }}</p>
+      <button class="region-page__back" @click="router.push('/')">
+        {{ $t('common.backHome') }}
       </button>
     </div>
   </div>
@@ -65,151 +57,166 @@
 
 <script setup lang="ts">
 import BarChart from '~/components/charts/BarChart.vue';
-import type { Region, Indicator } from '~/types/api';
+import type { Indicator, Region, Unit } from '~/types/api';
 
-// Types
-interface LocalizedName {
-  fr: string;
-  ar?: string;
-  en?: string;
-}
-
-interface KeyFigure {
-  code: string;
-  label: string | LocalizedName;
-  value: number;
-  icon?: string;
-  color?: string;
-}
-
-interface RegionIndicator extends Indicator {
-  value?: number;
-}
-
-// Composables
 const route = useRoute();
-const { locale } = useI18n();
+const router = useRouter();
+const { t } = useI18n();
+const { getLocalizedName } = useLocalizedContent();
+const { formatCompact: formatValue } = useValueFormat();
 
-// Computed
-const currentLang = computed(() => String(locale.value));
 const regionCode = computed(() => String(route.params.code));
 
-// Refs
 const region = ref<Region | null>(null);
-const keyFigures = ref<KeyFigure[]>([]);
-const regionIndicators = ref<RegionIndicator[]>([]);
+const indicators = ref<Indicator[]>([]);
 const loading = ref(true);
 
-// Chart data
-const chartLabels = computed(() => {
-  return regionIndicators.value
-    .filter(i => i.value !== undefined && i.value !== null)
-    .map(i => getLocalizedName(i.name));
-});
+/** Seules les lignes "ensemble" sont comparables entre elles. */
+const isTotal = (indicator: Indicator) =>
+  !indicator.disaggregation || Object.keys(indicator.disaggregation).length === 0;
 
-const chartDatasets = computed(() => {
-  return [{
-    label: 'Valeur',
-    data: regionIndicators.value
-      .filter(i => i.value !== undefined && i.value !== null)
-      .map(i => i.value || 0)
-  }];
-});
+const hasValue = (indicator: Indicator) =>
+  typeof indicator.value === 'number' && Number.isFinite(indicator.value);
 
-// Utility functions
-const getLocalizedName = (nameObj: string | LocalizedName | null | undefined): string => {
-  if (!nameObj) return '';
-  if (typeof nameObj === 'string') return nameObj;
-  if (typeof nameObj === 'object') {
-    return nameObj[currentLang.value as keyof LocalizedName] || nameObj.fr || nameObj.en || '';
-  }
-  return '';
-};
+const totals = computed(() => indicators.value.filter((i) => isTotal(i) && hasValue(i)));
 
-const formatNumber = (num: number | null | undefined): string => {
-  if (!num && num !== 0) return '—';
-  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-  if (num >= 1000) return (num / 1000).toFixed(0) + 'k';
-  return num.toLocaleString();
-};
 
-// Generate key figures from region data
-const generateKeyFigures = (regionData: Region) => {
-  const figures: KeyFigure[] = [];
-  
-  // Population totale
-  if (regionData.population) {
-    figures.push({
-      code: 'population',
-      label: { fr: 'Population totale', ar: 'إجمالي السكان', en: 'Total Population' },
-      value: regionData.population,
-      icon: 'mdi-account-group',
-      color: '#1A9553',
-    });
-  }
-  
-  // Superficie
-  if (regionData.area) {
+
+const PALETTE = ['#1A9553', '#1A5276', '#D35400', '#8E44AD', '#C8A951', '#E74C3C'];
+
+const keyFigures = computed(() => {
+  const figures: Array<{
+    code: string;
+    label: string;
+    display: string;
+    icon: string;
+    color: string;
+  }> = [];
+
+  if (typeof region.value?.area === 'number') {
     figures.push({
       code: 'area',
-      label: { fr: 'Superficie (km²)', ar: 'المساحة (كم²)', en: 'Area (km²)' },
-      value: regionData.area,
+      label: t('region.area'),
+      display: formatValue(region.value.area),
       icon: 'mdi-map',
       color: '#0066CC',
     });
   }
-  
-  // Densité
-  if (regionData.population && regionData.area) {
-    figures.push({
-      code: 'density',
-      label: { fr: 'Densité (hab/km²)', ar: 'الكثافة (نسمة/كم²)', en: 'Density (pop/km²)' },
-      value: Math.round(regionData.population / regionData.area),
-      icon: 'mdi-map-marker-radius',
-      color: '#FF6B35',
+
+  totals.value
+    .filter((i) => i.unit === 'number')
+    .slice(0, 5)
+    .forEach((indicator, index) => {
+      figures.push({
+        code: `${indicator.indicatorCode}-${index}`,
+        label: getLocalizedName(indicator.name, indicator.indicatorCode),
+        display: formatValue(indicator.value as number, indicator.unit),
+        icon: 'mdi-chart-box-outline',
+        color: PALETTE[index % PALETTE.length],
+      });
     });
-  }
-  
-  keyFigures.value = figures;
+
+  return figures;
+});
+
+/**
+ * Un graphique par unite. Les effectifs ("number") sont deja presentes en
+ * cartes de chiffres cles ; les taux et les ratios ne partagent pas la meme
+ * echelle et ne peuvent donc pas figurer sur le meme axe.
+ */
+const UNIT_TITLES: Partial<Record<Unit, string>> = {
+  percentage: 'region.mainIndicators',
 };
 
-// Load region data
+const chartGroups = computed(() => {
+  const byUnit = new Map<Unit, Indicator[]>();
+
+  totals.value
+    .filter((i) => i.unit && i.unit !== 'number')
+    .forEach((indicator) => {
+      const unit = indicator.unit as Unit;
+      byUnit.set(unit, [...(byUnit.get(unit) ?? []), indicator]);
+    });
+
+  return [...byUnit.entries()]
+    .filter(([, rows]) => rows.length > 1)
+    .map(([unit, rows]) => ({
+      unit,
+      title: t(UNIT_TITLES[unit] ?? 'region.mainIndicators'),
+      labels: rows.map((i) => getLocalizedName(i.name, i.indicatorCode)),
+      values: rows.map((i) => i.value as number),
+    }));
+});
+
 const loadRegionData = async () => {
   loading.value = true;
+  region.value = null;
+  indicators.value = [];
+
+  const api = useApi();
+
   try {
-    const api = useApi();
-    
-    // Fetch region details
     const response = await api.getRegion(regionCode.value);
-    if (response?.success && response.data) {
-      region.value = response.data;
-      generateKeyFigures(response.data);
-    }
-    
-    // Fetch region indicators
-    const indResponse = await api.getRegionIndicators(regionCode.value);
-    if (indResponse?.success && indResponse.data) {
-      regionIndicators.value = indResponse.data;
-    }
+    if (response?.success && response.data) region.value = response.data;
   } catch (error) {
-    console.error('Error loading region data:', error);
-    region.value = null;
+    console.error('Error loading region:', error);
+    loading.value = false;
+    return;
+  }
+
+  try {
+    const response = await api.getRegionIndicators(regionCode.value);
+    if (response?.success && Array.isArray(response.data)) indicators.value = response.data;
+  } catch (error) {
+    console.error('Error loading region indicators:', error);
   } finally {
     loading.value = false;
   }
 };
 
-// Lifecycle
-onMounted(() => {
-  loadRegionData();
-});
-
-watch(regionCode, () => {
-  loadRegionData();
-});
+onMounted(loadRegionData);
+watch(regionCode, loadRegionData);
 </script>
 
 <style scoped>
+.region-page {
+  padding: 24px;
+}
+
+.region-page__header {
+  margin-bottom: 24px;
+}
+
+.region-page__header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1A1D26;
+}
+
+.region-page__header p {
+  color: #5A5F72;
+  font-size: 0.9rem;
+}
+
+.region-page__state {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.region-page__error {
+  color: #D32F2F;
+}
+
+.region-page__back {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border: 1px solid #d0d0d0;
+  background: white;
+  border-radius: 4px;
+}
+
 .key-figures {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -244,7 +251,7 @@ watch(regionCode, () => {
 }
 
 .key-figure-card__value {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: #1A1D26;
   margin-bottom: 0.5rem;
@@ -256,9 +263,6 @@ watch(regionCode, () => {
 }
 
 .charts-panel {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 0;
 }
 </style>

@@ -4,20 +4,20 @@
     <div class="theme-header">
       <div class="theme-header__content">
         <h1 class="theme-header__title">
-          {{ isMapLoading ? "Chargement..." : currentIndicatorName || "Aucun indicateur trouvé" }}
+          {{ isMapLoading ? $t('common.loading') : currentIndicatorName || $t('errors.noIndicator') }}
         </h1>
         <select
-          v-if="indicators.length > 1"
+          v-if="mappableIndicators.length > 1"
           v-model="selectedIndicatorCode"
           class="indicator-selector"
           @change="onIndicatorChange"
         >
           <option
-            v-for="indicator in indicators"
+            v-for="indicator in mappableIndicators"
             :key="indicator.code"
             :value="indicator.code"
           >
-            {{ getIndicatorName(indicator) }}
+            {{ getLocalizedName(indicator.name, indicator.code) }}
           </option>
         </select>
       </div>
@@ -26,11 +26,11 @@
     <!-- Carte plein écran -->
     <div class="map-fullscreen">
       <!-- Message si pas de données -->
-      <div v-if="!isMapLoading && mapData.length === 0" class="no-data-overlay">
+      <div v-if="!isMapLoading && !hasValues" class="no-data-overlay">
         <div class="no-data-card">
           <span class="mdi mdi-alert-circle-outline no-data-icon"></span>
-          <h3>Aucune donnée disponible</h3>
-          <p>Les données pour cet indicateur ne sont pas encore disponibles.</p>
+          <h3>{{ $t('common.noData') }}</h3>
+          <p>{{ $t('errors.indicatorNoData') }}</p>
         </div>
       </div>
 
@@ -39,11 +39,13 @@
         :geojson="geojson"
         :map-data="mapData"
         :indicator-name="currentIndicatorName"
+        :unit="currentUnit"
+        :color-scale="colorScale"
         @region-click="onRegionClick"
       />
       <div v-else-if="isMapLoading" class="loading-state">
         <div class="loading-spinner"></div>
-        <p>Chargement de la carte...</p>
+        <p>{{ $t('map.loading') }}</p>
       </div>
     </div>
 
@@ -63,97 +65,90 @@
         <div class="region-popup__content">
           <!-- Valeur principale -->
           <div class="region-value-card">
-            <span class="region-value-label">Valeur</span>
-            <span class="region-value">{{ formatNumber(selectedRegionData.value) }}</span>
+            <span class="region-value-label">{{ $t('common.value') }}</span>
+            <span class="region-value">{{ formatValue(selectedRegionData.value, currentUnit) }}</span>
           </div>
 
           <!-- Message si pas de données pour cette région -->
-          <div v-if="!regionChartData.length && !subRegions.length" class="no-region-data">
+          <div v-if="!regionChart && !subRegions.length" class="no-region-data">
             <span class="mdi mdi-information-outline"></span>
-            <p>Aucune donnée détaillée disponible pour cette région.</p>
+            <p>{{ $t('errors.regionNoDetail') }}</p>
           </div>
 
-          <!-- Graphiques pour la région -->
-          <div v-if="regionChartData.length" class="region-charts">
+          <!-- Graphiques pour la région : une seule unité à la fois, lignes
+               "ensemble" uniquement (cf. AUDIT F-09). -->
+          <div v-if="regionChart" class="region-charts">
             <BarChart
-              :title="`${selectedRegionData.name} - Évolution`"
-              :labels="regionChartLabels"
-              :datasets="[{ label: currentIndicatorName, data: regionChartValues }]"
+              :title="regionChart.title"
+              :labels="regionChart.labels"
+              :datasets="[{ label: regionChart.title, data: regionChart.values }]"
               :horizontal="true"
             />
 
-            <PieChart
-              v-if="regionChartLabels.length > 1"
-              :title="`${selectedRegionData.name} - Distribution`"
-              :labels="regionChartLabels"
-              :data="regionChartValues"
-            />
+            <!-- Pas d'anneau ici : les indicateurs d'une region sont des
+                 ensembles imbriques (population 15+, active, inactive,
+                 occupes...), pas une partition. En faire des parts d'un total
+                 serait faux, quelle que soit l'unite (cf. AUDIT F-09). -->
           </div>
 
           <!-- Statistiques de la région -->
-          <div v-if="regionStats && selectedRegionData.value !== null" class="region-stats">
-            <h3>Statistiques</h3>
+          <div v-if="regionStats" class="region-stats">
+            <h3>{{ $t('common.statistics') }}</h3>
             <div class="stats-grid">
               <div class="stat-item">
-                <span class="stat-label">Code</span>
+                <span class="stat-label">{{ $t('common.code') }}</span>
                 <span class="stat-value">{{ selectedRegionData.code }}</span>
               </div>
               <div class="stat-item">
-                <span class="stat-label">Rang</span>
-                <span class="stat-value">{{ regionStats.rank }}/{{ mapData.length }}</span>
+                <span class="stat-label">{{ $t('common.rank') }}</span>
+                <span class="stat-value">{{ regionStats.rank }}/{{ regionStats.total }}</span>
               </div>
-              <div class="stat-item">
-                <span class="stat-label">% du total</span>
-                <span class="stat-value">{{ regionStats.percentage }}%</span>
+              <div v-if="regionStats.share !== null" class="stat-item">
+                <span class="stat-label">{{ $t('common.shareOfTotal') }}</span>
+                <span class="stat-value">{{ regionStats.share }} %</span>
               </div>
             </div>
           </div>
 
           <!-- Sous-régions si disponibles -->
           <div v-if="subRegions.length" class="sub-regions">
-            <h3>Subdivisions</h3>
+            <h3>{{ $t('common.subdivisions') }}</h3>
             <div class="sub-regions-list">
-              <div 
-                v-for="subRegion in subRegions" 
+              <div
+                v-for="subRegion in subRegions"
                 :key="subRegion.code"
                 class="sub-region-item"
               >
                 <span class="sub-region-name">{{ subRegion.name }}</span>
-                <span class="sub-region-value">{{ formatNumber(subRegion.value) }}</span>
+                <span class="sub-region-value">{{ formatValue(subRegion.value, currentUnit) }}</span>
               </div>
             </div>
           </div>
 
           <!-- Comparaison avec autres régions -->
           <div v-if="topRegions.length > 0" class="region-comparison">
-            <h3>Comparaison</h3>
+            <h3>{{ $t('common.comparison') }}</h3>
             <div class="comparison-bars">
-              <div 
-                v-for="region in topRegions" 
+              <div
+                v-for="region in topRegions"
                 :key="region.code"
                 class="comparison-bar"
                 :class="{ 'is-selected': region.code === selectedRegionData.code }"
               >
                 <div class="comparison-bar__header">
                   <span class="comparison-bar__name">{{ region.name }}</span>
-                  <span class="comparison-bar__value">{{ formatNumber(region.value) }}</span>
+                  <span class="comparison-bar__value">{{ formatValue(region.value, currentUnit) }}</span>
                 </div>
                 <div class="comparison-bar__track">
-                  <div 
-                    class="comparison-bar__fill" 
-                    :style="{ width: `${(region.value / maxRegionValue) * 100}%` }"
-                  ></div>
+                  <div class="comparison-bar__fill" :style="{ width: barWidth(region.value) }"></div>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- Bouton pour voir plus de détails -->
-          <button 
-            class="view-details-btn"
-            @click="navigateToRegionPage"
-          >
-            Voir tous les détails de {{ selectedRegionData.name }}
+          <button class="view-details-btn" @click="navigateToRegionPage">
+            {{ $t('region.viewAllDetails', { name: selectedRegionData.name }) }}
           </button>
         </div>
       </div>
@@ -161,8 +156,8 @@
 
     <!-- Overlay -->
     <transition name="fade">
-      <div 
-        v-if="selectedRegionData" 
+      <div
+        v-if="selectedRegionData"
         class="popup-overlay"
         @click="closeRegionPopup"
       ></div>
@@ -172,200 +167,244 @@
 
 <script setup lang="ts">
 import BarChart from "~/components/charts/BarChart.vue";
-import PieChart from "~/components/charts/PieChart.vue";
 import DjiboutiMap from "~/components/map/DjiboutiMap.vue";
-import type { GeoJSONData, MapDataEntry, Indicator } from "~/types/api";
+import type {
+  ColorScale,
+  GeoJSONData,
+  Indicator,
+  IndicatorMeta,
+  MapDataEntry,
+  Region,
+  Unit,
+} from "~/types/api";
 
 // Composables
 const route = useRoute();
 const router = useRouter();
-const { locale } = useI18n();
+const { t } = useI18n();
 const themeStore = useThemeStore();
+const { getLocalizedName } = useLocalizedContent();
+const { formatCompact: formatValue } = useValueFormat();
 
-// Computed
-const currentLang = computed(() => String(locale.value));
 const slug = computed(() => String(route.params.slug));
 
 // Refs
 const geojson = ref<GeoJSONData | null>(null);
 const mapData = ref<MapDataEntry[]>([]);
-const indicators = ref<Indicator[]>([]);
+const indicators = ref<IndicatorMeta[]>([]);
 const selectedIndicatorCode = ref("");
-const currentIndicatorName = ref("");
+const colorScale = ref<ColorScale | null>(null);
 const isMapLoading = ref(true);
-const selectedRegionData = ref<{
-  code: string;
-  name: string;
-  value: number | null;
-} | null>(null);
-const subRegions = ref<Array<{ code: string; name: string; value: number | null }>>([]);
-const regionChartData = ref<any[]>([]);
+const regionIndicators = ref<Indicator[]>([]);
 
-// Computed - Region stats
+// On conserve les objets bruts renvoyes par l'API plutot que des libelles
+// deja resolus : sinon le panneau reste dans la langue precedente apres un
+// changement de langue (cf. AUDIT F-24).
+const selectedRegion = ref<Region | null>(null);
+const childRegions = ref<Region[]>([]);
+
+/**
+ * Le sélecteur proposait les 64 indicateurs du thème, dont une trentaine
+ * n'existent qu'au niveau national et laissaient donc la carte vide
+ * (cf. AUDIT D-02). L'API expose maintenant hasRegionalData.
+ */
+const mappableIndicators = computed(() =>
+  indicators.value.filter((i) => i.hasRegionalData !== false),
+);
+
+const selectedIndicator = computed(() =>
+  indicators.value.find((i) => i.code === selectedIndicatorCode.value) ?? null,
+);
+
+const currentIndicatorName = computed(() =>
+  selectedIndicator.value
+    ? getLocalizedName(selectedIndicator.value.name, selectedIndicator.value.code)
+    : "",
+);
+
+const currentUnit = computed<Unit>(() => (selectedIndicator.value?.unit as Unit) ?? "number");
+
+const selectedRegionData = computed(() => {
+  const region = selectedRegion.value;
+  if (!region) return null;
+
+  return {
+    code: region.code,
+    name: getLocalizedName(region.name, region.code),
+    // "?? null" et non "|| null" : une valeur de 0 est une valeur
+    // (cf. AUDIT F-10).
+    value: mapData.value.find((d) => d.regionCode === region.code)?.value ?? null,
+  };
+});
+
+const subRegions = computed(() =>
+  childRegions.value.map((child) => ({
+    code: child.code,
+    name: getLocalizedName(child.name, child.code),
+    value: null as number | null,
+  })),
+);
+
+const numericEntries = computed(() =>
+  mapData.value.filter(
+    (entry): entry is MapDataEntry & { value: number } =>
+      typeof entry.value === "number" && Number.isFinite(entry.value),
+  ),
+);
+
+const hasValues = computed(() => numericEntries.value.length > 0);
+
+const maxRegionValue = computed(() =>
+  numericEntries.value.reduce((max, entry) => Math.max(max, entry.value), 0),
+);
+
 const regionStats = computed(() => {
-  if (!selectedRegionData.value || selectedRegionData.value.value === null) return null;
-  
-  const validRegions = mapData.value.filter(r => r.value !== null);
-  if (validRegions.length === 0) return null;
-  
-  const sortedRegions = [...validRegions].sort((a, b) => (b.value || 0) - (a.value || 0));
-  const rank = sortedRegions.findIndex(r => r.regionCode === selectedRegionData.value?.code) + 1;
-  const total = validRegions.reduce((sum, r) => sum + (r.value || 0), 0);
-  const percentage = total > 0 ? ((selectedRegionData.value.value || 0) / total * 100).toFixed(1) : '0';
-  
-  return { rank, percentage };
+  const selected = selectedRegionData.value;
+  if (!selected || selected.value === null) return null;
+
+  const sorted = [...numericEntries.value].sort((a, b) => b.value - a.value);
+  if (!sorted.length) return null;
+
+  const rank = sorted.findIndex((entry) => entry.regionCode === selected.code) + 1;
+  if (rank === 0) return null;
+
+  // Une part du total n'a de sens que sur des effectifs : la somme de taux
+  // regionaux ne represente rien.
+  const total = sorted.reduce((sum, entry) => sum + entry.value, 0);
+  const share =
+    currentUnit.value === "number" && total > 0
+      ? ((selected.value / total) * 100).toFixed(1)
+      : null;
+
+  return { rank, total: sorted.length, share };
 });
 
-const maxRegionValue = computed(() => {
-  const values = mapData.value.map(r => r.value || 0).filter(v => v > 0);
-  return values.length > 0 ? Math.max(...values) : 0;
-});
-
-const topRegions = computed(() => {
-  return [...mapData.value]
-    .filter(r => r.value !== null && r.value > 0)
-    .sort((a, b) => (b.value || 0) - (a.value || 0))
+const topRegions = computed(() =>
+  [...numericEntries.value]
+    .sort((a, b) => b.value - a.value)
     .slice(0, 5)
-    .map(r => ({
-      code: r.regionCode,
-      name: getRegionName(r),
-      value: r.value || 0,
-    }));
+    .map((entry) => ({
+      code: entry.regionCode,
+      name: getLocalizedName(entry.regionName, entry.regionCode),
+      value: entry.value,
+    })),
+);
+
+/**
+ * Graphique du panneau régional : uniquement les lignes "ensemble" partageant
+ * l'unité de l'indicateur courant. L'ancienne version empilait tous les
+ * indicateurs de la région, toutes unités et toutes ventilations confondues.
+ */
+const regionChart = computed(() => {
+  const rows = regionIndicators.value.filter(
+    (ind) =>
+      (!ind.disaggregation || Object.keys(ind.disaggregation).length === 0) &&
+      typeof ind.value === "number" &&
+      Number.isFinite(ind.value) &&
+      ind.unit === currentUnit.value,
+  );
+
+  if (rows.length < 2) return null;
+
+  return {
+    unit: currentUnit.value,
+    title: selectedRegionData.value?.name ?? t("region.mainIndicators"),
+    labels: rows.map((ind) => getLocalizedName(ind.name, ind.indicatorCode)),
+    values: rows.map((ind) => ind.value as number),
+  };
 });
 
-const regionChartLabels = computed(() => {
-  return regionChartData.value.map(d => d.label || 'Inconnu');
-});
 
-const regionChartValues = computed(() => {
-  return regionChartData.value.map(d => d.value || 0);
-});
 
-// Utility functions
-const getIndicatorName = (indicator: Indicator): string => {
-  const name = indicator.name as any;
-  if (typeof name === "string") return name;
-  if (typeof name === "object") {
-    return name[currentLang.value] || name.fr || name.en || indicator.code;
-  }
-  return indicator.code;
+const barWidth = (value: number): string => {
+  if (!maxRegionValue.value) return "0%";
+  return `${Math.max(0, Math.min(100, (value / maxRegionValue.value) * 100))}%`;
 };
 
-const getRegionName = (region: MapDataEntry): string => {
-  const regionName = region.regionName as any;
-  return regionName?.[currentLang.value] || regionName?.fr || region.regionCode || "Unknown";
-};
-
-const formatNumber = (num: number | null | undefined): string => {
-  if (num === null || num === undefined) return "—";
-  if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
-  if (num >= 1000) return (num / 1000).toFixed(0) + "k";
-  return num.toLocaleString();
-};
+const findIndicator = (code: string) => mappableIndicators.value.find((i) => i.code === code);
 
 // Load indicator data
 const loadIndicatorData = async (indicatorCode: string) => {
   try {
     const api = useApi();
-    const mapResponse = await api.getMapData(indicatorCode);
+    const response = await api.getMapData(indicatorCode, { level: "region" });
 
-    if (mapResponse?.success && mapResponse.data?.mapData) {
-      mapData.value = mapResponse.data.mapData;
+    if (response?.success && response.data) {
+      mapData.value = response.data.mapData ?? [];
+      colorScale.value = response.data.visualization?.colorScale ?? null;
     } else {
       mapData.value = [];
-      console.warn(`No data available for indicator: ${indicatorCode}`);
+      colorScale.value = null;
     }
   } catch (error) {
     console.error("Error loading indicator data:", error);
     mapData.value = [];
+    colorScale.value = null;
   }
+};
+
+const selectIndicator = async (meta: IndicatorMeta) => {
+  selectedIndicatorCode.value = meta.code;
+  await loadIndicatorData(meta.code);
 };
 
 // Load region specific data
 const loadRegionData = async (regionCode: string) => {
+  const api = useApi();
+
   try {
-    const api = useApi();
-    
-    // Charger les données de la région
     const regionResponse = await api.getRegion(regionCode);
-    if (regionResponse?.success) {
-      const region = regionResponse.data;
-      
-      selectedRegionData.value = {
-        code: regionCode,
-        name: getLocalizedName(region.name),
-        value: mapData.value.find(d => d.regionCode === regionCode)?.value || null,
-      };
-    }
-
-    // Charger les sous-régions
-    try {
-      const childrenResponse = await api.getRegionChildren(regionCode);
-      if (childrenResponse?.success && childrenResponse.data) {
-        subRegions.value = childrenResponse.data.map((child: any) => ({
-          code: child.code,
-          name: getLocalizedName(child.name),
-          value: null,
-        }));
-      }
-    } catch {
-      subRegions.value = [];
-    }
-
-    // Charger les indicateurs de la région
-    try {
-      const indicatorsResponse = await api.getRegionIndicators(regionCode);
-      if (indicatorsResponse?.success && indicatorsResponse.data) {
-        regionChartData.value = indicatorsResponse.data.map((ind: any) => ({
-          label: getLocalizedName(ind.name),
-          value: ind.value || 0,
-        }));
-      }
-    } catch {
-      regionChartData.value = [];
+    if (regionResponse?.success && regionResponse.data) {
+      selectedRegion.value = regionResponse.data;
     }
   } catch (error) {
     console.error("Error loading region data:", error);
+    return;
   }
-};
 
-const getLocalizedName = (nameObj: any): string => {
-  if (!nameObj) return '';
-  if (typeof nameObj === 'string') return nameObj;
-  if (typeof nameObj === 'object') {
-    return nameObj[currentLang.value] || nameObj.fr || nameObj.en || '';
+  try {
+    const childrenResponse = await api.getRegionChildren(regionCode);
+    childRegions.value =
+      childrenResponse?.success && Array.isArray(childrenResponse.data)
+        ? childrenResponse.data
+        : [];
+  } catch {
+    childRegions.value = [];
   }
-  return '';
+
+  try {
+    const indicatorsResponse = await api.getRegionIndicators(regionCode, { theme: slug.value });
+    regionIndicators.value =
+      indicatorsResponse?.success && Array.isArray(indicatorsResponse.data)
+        ? indicatorsResponse.data
+        : [];
+  } catch {
+    regionIndicators.value = [];
+  }
 };
 
 // Load theme data
 const loadThemeData = async () => {
   isMapLoading.value = true;
-  
+  closeRegionPopup();
+
   try {
     const api = useApi();
 
-    // Toujours charger le GeoJSON d'abord
+    // Toujours charger le GeoJSON d'abord : la carte reste affichée même
+    // lorsque l'indicateur n'a aucune valeur (cf. AUDIT F-03).
     const geoResponse = await api.getGeoJSON("region");
-    if (geoResponse?.success) {
-      geojson.value = geoResponse.data;
-    }
+    if (geoResponse?.success) geojson.value = geoResponse.data;
 
-    // Fetch theme details
     const themeResponse = await api.getTheme(slug.value);
-    if (themeResponse?.success) {
-      const { indicators: themeIndicators } = themeResponse.data;
-      indicators.value = themeIndicators || [];
+    if (themeResponse?.success && themeResponse.data) {
+      indicators.value = themeResponse.data.indicators ?? [];
 
-      // Load first indicator by default
-      if (themeIndicators && themeIndicators.length > 0) {
-        const firstIndicator = themeIndicators[0];
-        selectedIndicatorCode.value = firstIndicator.code;
-        currentIndicatorName.value = getIndicatorName(firstIndicator);
-
-        await loadIndicatorData(firstIndicator.code);
+      const first = mappableIndicators.value[0];
+      if (first) {
+        await selectIndicator(first);
       } else {
-        // Pas d'indicateurs, mais on garde la carte visible
+        selectedIndicatorCode.value = "";
         mapData.value = [];
       }
     }
@@ -379,29 +418,25 @@ const loadThemeData = async () => {
 
 // Event handlers
 const onIndicatorChange = async () => {
-  const indicator = indicators.value.find(
-    (i) => i.code === selectedIndicatorCode.value,
-  );
-  if (indicator) {
-    currentIndicatorName.value = getIndicatorName(indicator);
-    await loadIndicatorData(indicator.code);
-    
-    // Recharger les données de la région si une région est sélectionnée
-    if (selectedRegionData.value) {
-      await loadRegionData(selectedRegionData.value.code);
-    }
+  const meta = findIndicator(selectedIndicatorCode.value);
+  if (!meta) return;
+
+  await selectIndicator(meta);
+
+  if (selectedRegionData.value) {
+    await loadRegionData(selectedRegionData.value.code);
   }
 };
 
-const onRegionClick = async (regionProps: { code: string; name?: string }) => {
-  await loadRegionData(regionProps.code);
+const onRegionClick = async (regionProps: { code?: string }) => {
+  if (regionProps?.code) await loadRegionData(regionProps.code);
 };
 
-const closeRegionPopup = () => {
-  selectedRegionData.value = null;
-  subRegions.value = [];
-  regionChartData.value = [];
-};
+function closeRegionPopup() {
+  selectedRegion.value = null;
+  childRegions.value = [];
+  regionIndicators.value = [];
+}
 
 const navigateToRegionPage = () => {
   if (selectedRegionData.value) {
@@ -416,6 +451,7 @@ onMounted(() => {
 });
 
 watch(slug, () => {
+  themeStore.setActiveTheme(slug.value);
   loadThemeData();
 });
 </script>

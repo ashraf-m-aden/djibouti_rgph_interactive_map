@@ -18,7 +18,10 @@
     "districts": "المقاطعات",
     "communes": "البلديات",
     "population": "السكان",
-    "country": "جمهورية جيبوتي"
+    "country": "جمهورية جيبوتي",
+    "reset": "إعادة تعيين العرض",
+    "loading": "جارٍ تحميل الخريطة…",
+    "noGeo": "خلفية الخريطة غير متوفرة"
   },
   "sidebar": {
     "searchPlaceholder": "البحث عن مؤشر...",
@@ -45,11 +48,38 @@
     "noData": "لا توجد بيانات متاحة",
     "download": "تحميل",
     "print": "طباعة",
-    "share": "مشاركة"
+    "share": "مشاركة",
+    "unknown": "غير معروف",
+    "retry": "إعادة المحاولة",
+    "value": "القيمة",
+    "rank": "الرتبة",
+    "code": "الرمز",
+    "statistics": "إحصاءات",
+    "subdivisions": "التقسيمات",
+    "comparison": "مقارنة",
+    "shareOfTotal": "٪ من المجموع",
+    "backHome": "العودة إلى الصفحة الرئيسية",
+    "searchNoResult": "لا توجد نتائج",
+    "themes": "المواضيع",
+    "regions": "الجهات",
+    "indicators": "المؤشرات"
   },
   "footer": {
-    "copyright": "© 2024 المعهد الوطني للإحصاء في جيبوتي",
+    "copyright": "© 2024 المعهد الوطني للإحصاء في جيبوتي (INSTAD)",
     "contact": "اتصل بنا",
     "legalNotice": "الإشعارات القانونية"
+  },
+  "errors": {
+    "loadFailed": "خطأ في تحميل البيانات",
+    "indicatorNoData": "بيانات هذا المؤشر غير متوفرة بعد.",
+    "regionNoData": "لا توجد بيانات متاحة لهذه الجهة.",
+    "regionNoDetail": "لا توجد بيانات مفصلة متاحة لهذه الجهة.",
+    "regionNotFound": "الجهة غير موجودة",
+    "noIndicator": "لم يتم العثور على أي مؤشر"
+  },
+  "region": {
+    "mainIndicators": "المؤشرات الرئيسية",
+    "area": "المساحة (كم²)",
+    "viewAllDetails": "عرض كل تفاصيل {name}"
   }
 }

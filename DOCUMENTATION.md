@@ -18,9 +18,9 @@ Pour les anomalies relevées lors de l'audit, voir [`AUDIT.md`](AUDIT.md).
 | @nuxtjs/i18n | 8.3.3 | 3 locales, stratégie `no_prefix`, RTL |
 | Pinia | 2.3.1 (`@pinia/nuxt` 0.5.4) | stores `theme` et `map` |
 | Leaflet | 1.9.4 | carte, fond satellite Esri, couche GeoJSON |
-| Chart.js | 4.5.1 | barres et anneau |
+| Chart.js | 4.5.1 | graphiques en barres |
 | Sass | 1.97 | design system `assets/scss/main.scss` |
-| TypeScript / vue-tsc | 5.9.3 / 1.8.27 | **combinaison cassée**, cf. AUDIT F-01 |
+| TypeScript / vue-tsc | 5.9.3 / 1.8.27 | vérification de types **désactivée** : cette combinaison est cassée, cf. AUDIT F-01 |
 
 Aucun test, aucun linter.
 
@@ -45,28 +45,29 @@ Deux conséquences structurantes :
 app.vue                     NuxtLayout + NuxtPage
 layouts/default.vue         en-tête + barre latérale + <slot> ; pilote dir="rtl"
 pages/
-├── index.vue               carte d'accueil (indicateur "population_totale")
+├── index.vue               carte d'accueil (indicateur "pop_15plus")
 ├── themes/[slug].vue       carte par thème + panneau régional (844 lignes)
 └── regions/[code].vue      fiche d'une région (chiffres clés + graphique)
 components/
 ├── map/DjiboutiMap.vue     carte Leaflet, choroplèthe, légende, barre d'outils
 ├── charts/BarChart.vue     Chart.js type bar (ou horizontal)
-├── charts/PieChart.vue     Chart.js type doughnut
+├── charts/PieChart.vue     Chart.js type doughnut (plus utilise, cf. AUDIT F-09)
 └── layout/                 AppHeader, AppSidebar, LanguageSwitcher
 composables/
-├── useApi.ts               client $fetch — 16 méthodes, 6 réellement utilisées
+├── useApi.ts               client $fetch typé sur les réponses réelles
+├── useLocalizedContent.ts  résolution des objets { fr, ar, en }
+├── useValueFormat.ts       formatage des valeurs selon l'unité et la langue
 ├── useMapData.ts           ⚠ code mort (réimplémenté dans index.vue)
-├── useChart.ts             ⚠ code mort
-└── useLocalizedContent.ts  ⚠ code mort (dupliqué dans chaque page)
+└── useChart.ts             ⚠ code mort
 stores/
-├── theme.ts                7 thèmes codés en dur ; fetchThemes() jamais appelée
+├── theme.ts                thèmes chargés depuis l'API, liste de secours intégrée
 └── map.ts                  ⚠ store complet jamais utilisé
-types/api.ts, types/map.ts  types partiellement redondants et divergents
+types/api.ts                source de vérité des types ; types/map.ts les réexporte
 assets/
 ├── scss/main.scss          design system (couleurs, RTL, responsive)
 ├── css/leaflet-fix.css     ⚠ jamais importé
-└── data/                   GeoJSON de secours + valeurs de carte de secours
-locales/{fr,ar,en}.json     39 clés chacune (parité vérifiée)
+└── data/                   GeoJSON de secours (tracé des régions uniquement)
+locales/{fr,ar,en}.json     65 clés chacune (parité vérifiée)
 nginx.conf, Dockerfile      image de production (nginx + fichiers statiques)
 ```
 
@@ -75,7 +76,7 @@ nginx.conf, Dockerfile      image de production (nginx + fichiers statiques)
 ```bash
 cp .env.example .env     # NUXT_PUBLIC_API_BASE=http://localhost:5000/api
 npm ci
-npm run dev              # http://localhost:3000  ⚠ échoue en l'état (AUDIT F-01)
+npm run dev              # http://localhost:3000
 npm run generate         # build statique dans .output/public
 ```
 
@@ -93,25 +94,25 @@ service :
 | `composables/useMapData.ts` | morte | `useApi` + refs locales |
 | `stores/map.ts` | morte | `useFetch` appelée dans des actions Pinia (anti-pattern) |
 
-`useApi` expose 16 méthodes ; seules `getRegion`, `getRegionChildren`,
-`getRegionIndicators`, `getTheme`, `getMapData` et `getGeoJSON` sont appelées.
-`getThemes`, `getThemeKeyFigures`, `getIndicators`, `getIndicatorsByTheme`,
-`getChartData`, `compareIndicator`, `search`, `fetchData` ne le sont jamais
-(AUDIT F-11).
+`useApi` expose 16 méthodes. Sont appelées : `getRegion`, `getRegionChildren`,
+`getRegionIndicators`, `getThemes` (barre latérale), `getTheme`, `getMapData`,
+`getGeoJSON` et `search` (barre latérale). `getThemeKeyFigures`,
+`getIndicators`, `getIndicatorsByTheme`, `getChartData`, `compareIndicator` et
+`fetchData` restent inutilisées (AUDIT F-11).
 
 ### Séquences par page
 
 **`/` (index.vue)** — au montage, `Promise.all` de :
 
-1. `GET /api/geo/region` → repli sur `assets/data/djibouti-regions.json` en cas
-   d'échec ;
-2. `GET /api/indicators/map-data/population_totale` → repli sur
-   `assets/data/fallBackMap.ts` (valeurs inventées) en cas d'échec.
+1. `GET /api/geo/region` → repli sur `assets/data/djibouti-regions.json` (tracé
+   des régions seulement) en cas d'échec ;
+2. `GET /api/indicators/map-data/pop_15plus` — l'indicateur de la page
+   d'accueil, défini par la constante `HOME_INDICATOR`. En cas d'échec, aucune
+   donnée de secours n'est inventée : la carte reste affichée avec ses contours
+   et un bandeau signale l'absence de valeurs.
 
-La carte ne s'affiche que si `geojson` **et** `mapData.length > 0`. Le clic sur
-une région pousse vers `/regions/<code>`. ⚠ `population_totale` n'existe qu'au
-niveau national côté API : la réponse contient 6 régions à `value: null`, donc
-la carte s'affiche entièrement grise (AUDIT D-01).
+La carte s'affiche dès que le GeoJSON est disponible. Le clic sur une région
+pousse vers `/regions/<code>`.
 
 **`/themes/:slug`** — au montage :
 
@@ -120,32 +121,40 @@ la carte s'affiche entièrement grise (AUDIT D-01).
    sélectionné ;
 3. `GET /api/indicators/map-data/<code>` pour l'indicateur courant.
 
+Le sélecteur ne propose que les indicateurs dont l'API signale
+`hasRegionalData: true` : les séries nationales, qui laisseraient la carte
+vide, en sont exclues.
+
 Au clic sur une région : `GET /api/regions/<code>`,
 `GET /api/regions/<code>/children`, `GET /api/regions/<code>/indicators`, qui
 alimentent un panneau latéral (valeur, rang, part du total, comparaison des 5
 premières régions, graphiques).
 
 **`/regions/:code`** — `GET /api/regions/<code>` puis
-`GET /api/regions/<code>/indicators`. Les « chiffres clés » sont **recalculés
-côté client** depuis `region.population` et `region.area` ; `population`
-n'existant pas dans le modèle backend, seule la superficie s'affiche
-(AUDIT F-08).
+`GET /api/regions/<code>/indicators`. Les cartes de chiffres clés affichent la
+superficie puis les cinq premiers indicateurs d'effectif (`unit: 'number'`) de
+la région, lignes « ensemble » uniquement. Les autres unités alimentent un
+graphique par unité : taux et ratios ne partagent pas la même échelle.
 
 ## 6. Carte (DjiboutiMap.vue)
 
 * Fond `World_Imagery` d'ArcGIS, centre `[11.55, 42.95]`, zoom 8 (bornes 7–12),
   contrôle de zoom natif désactivé au profit d'une barre d'outils maison.
 * Jointure des données : `feature.properties.code` ↔ `mapData[].regionCode`.
-* Échelle recalculée à chaque rendu depuis les valeurs non nulles de `mapData`
-  (`0–100` par défaut si tout est nul) ; palette **rouge codée en dur** en 7
-  paliers (`#FEE5D9` → `#A50F15`), gris `#E0E0E0` pour une valeur absente. Le
-  `visualization.colorScale` fourni par l'API est ignoré (AUDIT F-17).
-* Interactions : survol (épaississement du trait), clic (`region-click`),
-  étiquette permanente centrée sur chaque région.
-* Props : `geojson`, `mapData`, `indicatorName`, `unit` (cette dernière n'est
-  jamais lue). Événements : `region-click`, `level-change`.
-* Boutons « Imprimer » et « Télécharger » présents mais sans action
-  (AUDIT F-06).
+* Échelle recalculée depuis les valeurs numériques de `mapData` ; palette de 7
+  paliers **interpolée entre les deux bornes de `visualization.colorScale`**
+  reçues de l'API (par défaut `#FEE5D9` → `#A50F15`), gris `#E0E0E0` pour une
+  valeur absente. Le même dégradé alimente la légende.
+* Interactions : infobulle au survol, étiquette permanente par région (marqueur
+  `divIcon`), clic (`region-click`). Le contenu HTML est échappé.
+* Props : `geojson`, `mapData`, `indicatorName`, `unit`, `colorScale`,
+  `levels`. Événements : `region-click`, `level-change`. Le sélecteur de niveau
+  n'apparaît que si `levels` en contient plusieurs — aucun GeoJSON de district
+  n'existe aujourd'hui.
+* « Imprimer » appelle `window.print()` (contrôles masqués à l'impression) ;
+  « Télécharger » exporte les données affichées en CSV `;` avec BOM UTF-8.
+* La couche est reconstruite au changement de langue, de données ou de palette,
+  et la carte est détruite au démontage du composant.
 
 ## 7. Internationalisation et RTL
 
@@ -159,10 +168,12 @@ n'existant pas dans le modèle backend, seule la superficie s'affiche
   les contrôles de carte, la légende et les tableaux ; la police arabe
   (`Noto Sans Arabic`) est appliquée via `[dir="rtl"] body`.
 * Les objets multilingues renvoyés par l'API (`{ fr, ar, en }`) sont résolus par
-  une fonction `getLocalizedName` — **dupliquée dans cinq fichiers**
-  (AUDIT F-14).
-* Les trois locales sont complètes (39 clés), mais une partie de l'interface est
-  écrite en français directement dans les templates (AUDIT F-05).
+  `useLocalizedContent().getLocalizedName`, seule implémentation.
+* Les valeurs numériques passent par `useValueFormat` : pourcentages via
+  `Intl.NumberFormat` en style `percent`, effectifs en notation compacte
+  localisée (`495,4 k` en français, `495.4 ألف` en arabe).
+* Les trois locales sont complètes (65 clés, parité vérifiée) et l'interface
+  n'affiche plus de texte codé en dur.
 
 ## 8. Styles
 
@@ -171,12 +182,13 @@ couleurs (`$primary: #1A9553` vert du drapeau, `$secondary: #6AB2E7`,
 `$accent: #D32F2F`), typographies, `$sidebar-width: 280px`,
 `$header-height: 60px`, mixin RTL, points de rupture 1024 / 768 px.
 
-Les mêmes classes (`.map-container`, `.map-controls`, `.map-toolbar`,
-`.map-legend`, `.app-sidebar`, `.chart-card`, `.key-figures`) sont **redéfinies
-en `<style scoped>`** dans les composants, ce qui neutralise les variantes RTL
-globales (AUDIT F-15). Trois feuilles de style externes sont chargées par CDN
-(Leaflet, Google Fonts, Material Design Icons) alors que Leaflet est déjà une
-dépendance npm (AUDIT F-21).
+Plusieurs classes (`.map-container`, `.app-sidebar`, `.chart-card`,
+`.key-figures`) restent définies à la fois dans `main.scss` et en
+`<style scoped>` (AUDIT F-15) ; les composants concernés portent désormais
+leurs propres règles RTL pour ne pas dépendre de l'ordre d'insertion. Trois
+feuilles de style externes sont chargées par CDN (Leaflet, Google Fonts,
+Material Design Icons) alors que Leaflet est déjà une dépendance npm
+(AUDIT F-21).
 
 ## 9. Build et déploiement
 

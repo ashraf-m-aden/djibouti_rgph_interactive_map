@@ -18,7 +18,10 @@
     "districts": "Districts",
     "communes": "Communes",
     "population": "Population",
-    "country": "Republic of Djibouti"
+    "country": "Republic of Djibouti",
+    "reset": "Reset view",
+    "loading": "Loading map…",
+    "noGeo": "Base map unavailable"
   },
   "sidebar": {
     "searchPlaceholder": "Search for an indicator...",
@@ -45,11 +48,38 @@
     "noData": "No data available",
     "download": "Download",
     "print": "Print",
-    "share": "Share"
+    "share": "Share",
+    "unknown": "Unknown",
+    "retry": "Retry",
+    "value": "Value",
+    "rank": "Rank",
+    "code": "Code",
+    "statistics": "Statistics",
+    "subdivisions": "Subdivisions",
+    "comparison": "Comparison",
+    "shareOfTotal": "% of total",
+    "backHome": "Back to home",
+    "searchNoResult": "No results",
+    "themes": "Themes",
+    "regions": "Regions",
+    "indicators": "Indicators"
   },
   "footer": {
-    "copyright": "© 2024 National Institute of Statistics of Djibouti (INSD)",
+    "copyright": "© 2024 National Statistics Institute of Djibouti (INSTAD)",
     "contact": "Contact",
     "legalNotice": "Legal Notice"
+  },
+  "errors": {
+    "loadFailed": "Failed to load data",
+    "indicatorNoData": "Data for this indicator is not available yet.",
+    "regionNoData": "No data available for this region.",
+    "regionNoDetail": "No detailed data available for this region.",
+    "regionNotFound": "Region not found",
+    "noIndicator": "No indicator found"
+  },
+  "region": {
+    "mainIndicators": "Main indicators",
+    "area": "Area (km²)",
+    "viewAllDetails": "View all details for {name}"
   }
 }
