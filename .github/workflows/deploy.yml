@@ -1,0 +1,57 @@
+name: Build, Push & Deploy Map Frontend
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set short SHA
+        id: meta
+        run: echo "sha_short=$(echo ${{ github.sha }} | cut -c1-7)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # SPA statique : l'URL de l'API est figee dans le bundle au build.
+      # "/api" car le site et l'API partagent le domaine (nginx route /api/).
+      # Le secret permet de surcharger sans toucher au code si l'API devait
+      # repasser sur un domaine distinct.
+      - name: Build & Push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          build-args: |
+            NUXT_PUBLIC_API_BASE=${{ secrets.MAP_PUBLIC_API_BASE || '/api' }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/rgph-map-frontend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/rgph-map-frontend:${{ steps.meta.outputs.sha_short }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      # L'EC2 est partage avec INSTAD : on ne redemarre que ce service,
+      # les autres apps ne sont pas interrompues.
+      - name: Deploy sur EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: /opt/instad/scripts/deploy.sh map-frontend

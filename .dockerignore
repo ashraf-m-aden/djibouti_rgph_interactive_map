@@ -1,0 +1,12 @@
+node_modules
+.nuxt
+.output
+.git
+.gitignore
+.github
+.env
+.env.*
+!.env.example
+Dockerfile
+.dockerignore
+*.md
