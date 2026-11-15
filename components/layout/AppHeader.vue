@@ -3,15 +3,9 @@
 
   <header class="app-header">
     <div class="app-header__brand">
-      <div class="app-header__mark" aria-hidden="true">
-        <svg width="20" height="20" viewBox="0 0 26 26">
-          <polygon points="13,2 24,13 13,24 2,13" fill="none" stroke="#00185F" stroke-width="1.6"></polygon>
-          <circle cx="13" cy="13" r="3" fill="#00185F"></circle>
-        </svg>
-      </div>
+      <div class="app-header__mark">INSTAD</div>
       <div class="app-header__text">
         <span class="app-header__eyebrow">{{ $t('app.subtitle') }}</span>
-        <span class="app-header__name">INSTAD</span>
         <span class="app-header__tagline">{{ $t('app.fullTitle') }}</span>
       </div>
     </div>

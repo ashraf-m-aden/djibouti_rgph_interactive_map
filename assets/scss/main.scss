@@ -111,35 +111,32 @@ h1, h2, h3 {
   }
 
   &__mark {
-    width: 36px;
-    height: 36px;
+    width: 48px;
+    height: 40px;
     flex-shrink: 0;
-    border: 1.5px solid $primary;
+    background: $primary;
     display: flex;
     align-items: center;
     justify-content: center;
+    color: white;
+    font-family: $font-body;
+    font-weight: 700;
+    font-size: 0.62rem;
+    letter-spacing: 0.02em;
   }
 
   &__text {
     display: flex;
     flex-direction: column;
     min-width: 0;
-    line-height: 1.2;
+    line-height: 1.25;
   }
 
   &__eyebrow {
-    font-size: 0.62rem;
+    font-size: 0.68rem;
     font-weight: 600;
-    letter-spacing: 0.07em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: $text-muted;
-  }
-
-  &__name {
-    font-family: $font-display;
-    font-size: 1.05rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
     color: $primary;
   }
 
