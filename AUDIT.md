@@ -7,6 +7,29 @@ Les anomalies du backend et du jeu de données sont dans
 `map-backend/AUDIT.md` (`C-xx`, `B-xx`, `D-xx`) ; celles qui se voient d'abord
 ici y sont référencées.
 
+## État des corrections
+
+Branche `fix/audit-bloquants-majeurs` (depuis `docs/audit-architecture`) :
+**corrigés et vérifiés dans un navigateur, contre l'API réelle** — F-01, F-02,
+F-03, F-04, F-05, F-06, F-07, F-08, F-09, F-10, F-13, F-14, F-16, F-17, F-18,
+F-23, F-24.
+
+**Restent ouverts** : F-11 et F-12 (code mort : `stores/map.ts`,
+`useMapData.ts`, `useChart.ts`, `leaflet-fix.css`), F-15 (duplication CSS
+résiduelle entre `main.scss` et les styles scopés), F-19 (mobile), F-20 (SEO
+et URL par langue), F-21 (CDN externes), F-22 (script `start` et lien `dist`).
+
+F-01 est corrigé par la **désactivation** de `typeCheck` : le serveur de
+développement redémarre. Le passage à `vue-tsc@2` — qui rétablirait la
+vérification de types et ne remonte aucune erreur sur ce code — a été tenté
+puis **abandonné** : toute réinstallation retire du lockfile les binaires de
+plateforme d'esbuild exigés par Vite 6 (`node_modules/vite/node_modules/@esbuild/*`),
+ce qui casse `npm ci`, donc le build Docker. Ce passage demande une
+régénération maîtrisée du lockfile, hors du cadre de ces correctifs ;
+`package.json` et `package-lock.json` sont laissés **inchangés**.
+
+---
+
 Sévérité : 🔴 bloquant · 🟠 majeur · 🟡 mineur.
 Colonne « Vérif. » : **exécuté** = reproduit par exécution,
 **lecture** = établi par lecture du code (y compris celui des dépendances).
@@ -38,9 +61,10 @@ Colonne « Vérif. » : **exécuté** = reproduit par exécution,
 | F-21 | 🟡 | Trois CDN externes chargés au runtime dont Leaflet, déjà en dépendance npm | lecture |
 | F-22 | 🟡 | Script `start` inopérant ; lien symbolique `dist` vers un chemin Windows absolu | exécuté |
 | F-23 | 🟡 | Repli silencieux sur des valeurs inventées en cas de panne d'API | lecture |
+| F-24 | 🟠 | La carte reste dans la langue précédente après un changement de langue | exécuté |
 
 Rappel des anomalies dont la cause est côté backend mais dont l'effet est visible
-ici : **D-01** (carte d'accueil entièrement grise), **D-02** (34 indicateurs
+ici : **D-01** (carte d'accueil entièrement grise), **D-02** (31 indicateurs
 sélectionnables sans données), **C-01/C-02** (`/api/regions` et `/api/indicators`
 renvoient les thèmes), **B-06** (`chart-data` renvoie des objets comme libellés).
 
@@ -100,7 +124,7 @@ if (!map.value || !props.geojson || !props.mapData || props.mapData.length === 0
 ```
 
 La couche GeoJSON n'est ajoutée **que si des données existent**. Sur la page
-thème, un indicateur national (34 cas sur 64, cf. D-02) laisse donc le fond
+thème, un indicateur national (31 cas sur 64, cf. D-02) laisse donc le fond
 satellite nu, sans contour de région : l'utilisateur ne voit pas Djibouti, il
 voit une photo aérienne. La page d'accueil pousse la logique plus loin et
 n'affiche pas le composant du tout (`v-if="geojson && mapData.length"`).
@@ -421,3 +445,27 @@ succès.
 
 **Correctif** : supprimer les données de repli, ou les afficher avec un bandeau
 explicite « données de démonstration — API indisponible ».
+
+### F-24 🟠 La carte ne suit pas le changement de langue
+
+Relevé en navigation réelle, après correction de F-04 : en passant de l'arabe
+au français, l'en-tête, la barre latérale et les bornes de la légende se
+traduisent, mais **les étiquettes des régions, l'infobulle et le titre de la
+légende restent en arabe**.
+
+Cause : Leaflet écrit le contenu des étiquettes dans le DOM au moment où la
+couche est construite. Le seul `watch` portait sur `geojson` et `mapData` ; un
+changement de `locale` ne déclenchait donc aucune reconstruction. Sur la page
+thème, s'ajoutait un second effet : `currentIndicatorName`, le nom de la région
+sélectionnée et ceux des sous-régions étaient des `ref` remplies une fois pour
+toutes avec un libellé déjà résolu.
+
+Le défaut préexistait à l'audit ; il n'avait pas été relevé faute de pouvoir
+exécuter l'application (F-01).
+
+**Correctif appliqué** : `watch(locale, () => updateGeoLayer())` dans
+`DjiboutiMap.vue` ; sur la page thème, les libellés deviennent des `computed`
+dérivés des objets bruts de l'API (`selectedRegion`, `childRegions`,
+`selectedIndicator`) ; sur l'accueil, `indicatorName` devient un `computed`.
+Vérifié dans le navigateur : le basculement FR ↔ AR met à jour carte, légende,
+panneau et graphiques sans rechargement.

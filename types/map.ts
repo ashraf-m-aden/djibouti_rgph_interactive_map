@@ -1,48 +1,29 @@
-export type AdminLevel = 'region' | 'district' | 'commune';
+/**
+ * Types de la carte. Ce fichier dupliquait AdminLevel, GeoJSONData,
+ * GeoJSONFeature et MapDataEntry avec des definitions divergentes de celles de
+ * `types/api.ts` (cf. AUDIT F-13) : il les reexporte desormais.
+ */
+export type {
+  AdminLevel,
+  ColorScale,
+  GeoJSONData,
+  GeoJSONFeature,
+  MapDataEntry,
+  MapLevel,
+} from './api';
 
-export interface GeoJSONData {
-  type: string;
-  features: GeoJSONFeature[];
-  [key: string]: any;
-}
-
-export interface GeoJSONFeature {
-  type: 'Feature';
-  properties: Record<string, any>;
-  geometry: {
-    type: string;
-    coordinates: any;
-  };
-}
-
-export interface MapDataEntry {
-  regionCode: string;
-  districtCode?: string;
-  communeCode?: string;
-  value: number | null;
-  name?: string;
-  [key: string]: any;
-}
-
-export interface ColorScale {
-  min: string;
-  max: string;
-}
+import type { AdminLevel, ColorScale, GeoJSONData, MapDataEntry } from './api';
 
 export interface FetchMapDataOptions {
   level?: AdminLevel;
-  disaggregation?: Record<string, any>;
+  disaggregation?: Record<string, string>;
 }
 
 export interface MapState {
   currentLevel: AdminLevel;
   selectedRegion: string | null;
   currentIndicator: string | null;
-  geoData: {
-    region: GeoJSONData | null;
-    district: GeoJSONData | null;
-    commune: GeoJSONData | null;
-  };
+  geoData: Partial<Record<AdminLevel, GeoJSONData | null>>;
   mapData: MapDataEntry[];
   colorScale: ColorScale;
   loading: boolean;

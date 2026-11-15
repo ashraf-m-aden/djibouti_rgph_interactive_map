@@ -3,7 +3,13 @@ export default defineNuxtConfig({
   
   typescript: {
     strict: true,
-    typeCheck: process.env.NODE_ENV === 'development', // ← Seulement en dev
+    // typeCheck desactive : "nuxi dev" positionne NODE_ENV=development, donc
+    // la verification etait toujours active, et vue-tsc 1.8 est incompatible
+    // avec TypeScript 5.9 ("Cannot find module @volar/typescript/...") — le
+    // serveur de developpement s'arretait des le demarrage (cf. AUDIT F-01).
+    // A reactiver apres passage a vue-tsc 2 (impose de regenerer le lockfile,
+    // cf. AUDIT F-01 pour le detail).
+    typeCheck: false,
     shim: false
   },
 

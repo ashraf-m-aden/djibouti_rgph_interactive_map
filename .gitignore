@@ -5,3 +5,6 @@ dist/
 .env.local
 *.log
 .DS_Store
+
+# Secrets locaux (le modele versionne est .env.example)
+.env

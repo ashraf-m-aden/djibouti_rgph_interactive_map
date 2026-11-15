@@ -1,131 +1,119 @@
 <template>
   <div class="index-page">
-    <!-- Debug info (optionnel - vous pouvez le retirer) -->
-
     <DjiboutiMap
-      v-if="geojson && mapData.length"
+      v-if="geojson"
       :geojson="geojson"
       :map-data="mapData"
-      :indicator-name="$t('map.population')"
-      unit="number"
+      :indicator-name="indicatorName"
+      :unit="unit"
+      :color-scale="colorScale"
       @region-click="onRegionClick"
-      @level-change="onLevelChange"
     />
 
     <div v-else class="loading-container">
-      <p v-if="loading">
-        {{ $t("common.loading") || "Chargement de la carte..." }}
-      </p>
-      <p v-else>
-        Erreur de chargement des données
-        <button @click="reload" class="retry-btn">Réessayer</button>
-      </p>
+      <p v-if="loading">{{ $t('map.loading') }}</p>
+      <template v-else>
+        <p>{{ $t('map.noGeo') }}</p>
+        <button class="retry-btn" @click="loadData">{{ $t('common.retry') }}</button>
+      </template>
+    </div>
+
+    <!-- Le fond de carte est disponible mais l'indicateur n'a aucune valeur :
+         on le dit, au lieu d'afficher une carte uniformement grise
+         (cf. AUDIT D-01). -->
+    <div v-if="geojson && !loading && !hasValues" class="no-data-banner">
+      <span class="mdi mdi-alert-circle-outline"></span>
+      {{ $t('errors.indicatorNoData') }}
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { fallbackMapData } from "~/assets/data/fallBackMap";
-import DjiboutiMap from "~/components/map/DjiboutiMap.vue";
-import type { GeoJSONData, MapDataEntry } from "~/types/api";
+import DjiboutiMap from '~/components/map/DjiboutiMap.vue';
+import type { ColorScale, GeoJSONData, MapDataEntry, Unit } from '~/types/api';
 
 const router = useRouter();
+const { t } = useI18n();
 
-interface RegionProps {
-  code: string;
-  name: string;
-  [key: string]: any;
-}
+/**
+ * Indicateur de la carte d'accueil. "population_totale" n'existe qu'au niveau
+ * national : la carte renvoyait six regions a null, donc un fond gris sans
+ * etiquette (cf. AUDIT D-01). "pop_15plus" couvre les six regions.
+ * A remplacer par la population totale par region des que le Tome 1 sera
+ * integre aux seeds.
+ */
+const HOME_INDICATOR = 'pop_15plus';
 
 const geojson = ref<GeoJSONData | null>(null);
 const mapData = ref<MapDataEntry[]>([]);
+const colorScale = ref<ColorScale | null>(null);
+const unit = ref<Unit>('number');
+// Recalcule a chaque changement de langue (cf. AUDIT F-24).
+const indicatorName = computed(() => t('map.population'));
 const loading = ref(true);
-const showDebug = ref(false); // Changez à true pour voir le debug
 
-// Fallback data (gardez vos données existantes)
+const hasValues = computed(() =>
+  mapData.value.some((entry) => typeof entry.value === 'number' && Number.isFinite(entry.value)),
+);
 
 const loadGeoData = async () => {
-  try {
-    const api = useApi();
-    const response = await api.getGeoJSON("region");
+  const api = useApi();
 
-    if (
-      response?.success &&
-      response.data &&
-      response.data.features?.length > 0
-    ) {
+  try {
+    const response = await api.getGeoJSON('region');
+    if (response?.success && response.data?.features?.length) {
       geojson.value = response.data;
-      return true;
+      return;
     }
   } catch (error) {
-    console.error("Error loading GeoJSON from API:", error);
+    console.error('Error loading GeoJSON from API:', error);
   }
 
+  // Repli hors ligne legitime : le trace des regions, pas des valeurs.
   try {
-    const staticData = await import("~/assets/data/djibouti-regions.json");
-    const loadedData = (staticData.default || staticData) as GeoJSONData;
-
-    if (loadedData && loadedData.features?.length > 0) {
-      geojson.value = loadedData;
-      return true;
-    }
+    const staticData = await import('~/assets/data/djibouti-regions.json');
+    const loaded = ((staticData as any).default ?? staticData) as GeoJSONData;
+    if (loaded?.features?.length) geojson.value = loaded;
   } catch (fallbackError) {
-    console.error("Failed to load fallback GeoJSON:", fallbackError);
+    console.error('Failed to load fallback GeoJSON:', fallbackError);
   }
-
-  return false;
 };
 
 const loadMapData = async () => {
-  try {
-    const api = useApi();
-    const response = await api.getMapData("population_totale");
+  const api = useApi();
 
-    if (
-      response?.success &&
-      response.data?.mapData &&
-      response.data.mapData.length > 0
-    ) {
-      mapData.value = response.data.mapData;
-      return true;
+  try {
+    const response = await api.getMapData(HOME_INDICATOR, { level: 'region' });
+    if (response?.success && response.data) {
+      mapData.value = response.data.mapData ?? [];
+      colorScale.value = response.data.visualization?.colorScale ?? null;
+      unit.value = (response.data.mapData?.find((e) => e.unit)?.unit as Unit) ?? 'number';
+      return;
     }
   } catch (error) {
-    console.error("Error loading map data:", error);
+    // Les valeurs de secours inventees ont ete supprimees : une panne d'API
+    // ne doit pas ressembler a des chiffres officiels (cf. AUDIT F-23).
+    console.error('Error loading map data:', error);
   }
 
-  mapData.value = fallbackMapData;
-  return true;
-};
-
-const onRegionClick = (regionProps: RegionProps) => {
-  router.push(`/regions/${regionProps.code}`);
-};
-
-const onLevelChange = (level: string) => {
-  console.log("Level changed:", level);
-};
-
-const reload = () => {
-  loading.value = true;
-  geojson.value = null;
   mapData.value = [];
-  loadData();
+  colorScale.value = null;
+};
+
+const onRegionClick = (regionProps: { code?: string }) => {
+  if (regionProps?.code) router.push(`/regions/${regionProps.code}`);
 };
 
 const loadData = async () => {
   loading.value = true;
   try {
     await Promise.all([loadGeoData(), loadMapData()]);
-  } catch (error) {
-    console.error("Critical error loading data:", error);
   } finally {
     loading.value = false;
   }
 };
 
-onMounted(() => {
-  loadData();
-});
+onMounted(loadData);
 </script>
 
 <style scoped>
@@ -136,38 +124,6 @@ onMounted(() => {
   position: relative;
 }
 
-.debug-panel {
-  position: fixed;
-  top: 70px;
-  right: 20px;
-  background: white;
-  padding: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  z-index: 9999;
-  max-width: 300px;
-  font-size: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.debug-panel h4 {
-  margin: 0 0 0.5rem;
-  font-size: 14px;
-}
-
-.debug-panel p {
-  margin: 0.25rem 0;
-}
-
-.debug-panel button {
-  margin-top: 0.5rem;
-  padding: 0.25rem 0.5rem;
-  cursor: pointer;
-  border: 1px solid #ccc;
-  background: white;
-  border-radius: 3px;
-}
-
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -176,10 +132,10 @@ onMounted(() => {
   height: 100%;
   font-size: 1.2rem;
   color: #666;
+  gap: 1rem;
 }
 
 .retry-btn {
-  margin-left: 1rem;
   padding: 0.5rem 1rem;
   cursor: pointer;
   background: #1a9553;
@@ -191,5 +147,34 @@ onMounted(() => {
 
 .retry-btn:hover {
   background: #157a42;
+}
+
+.no-data-banner {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  color: #8a5300;
+  border-left: 4px solid #ff9800;
+  padding: 0.75rem 1.25rem;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  font-size: 0.9rem;
+  max-width: 90%;
+}
+
+[dir="rtl"] .no-data-banner {
+  border-left: none;
+  border-right: 4px solid #ff9800;
+}
+
+.no-data-banner .mdi {
+  font-size: 1.25rem;
+  color: #ff9800;
 }
 </style>

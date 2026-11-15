@@ -1,42 +1,42 @@
 /**
  * Composable for RGPH API calls
+ *
+ * Les signatures decrivent desormais ce que l'API renvoie reellement :
+ * getTheme rend { theme, indicators, subThemes }, getChartData rend
+ * { labels, datasets } et search rend { themes, regions, indicators }
+ * (cf. AUDIT F-13).
  */
-import type { 
-  ApiResponse, 
-  Region, 
-  Theme, 
-  Indicator, 
-  MapDataEntry, 
-  ChartDataEntry, 
-  GeoJSONData, 
-  SearchResult,
-  RegionParams,
-  IndicatorParams,
-  MapDataParams,
+import type {
   AdminLevel,
-  Language
+  ApiResponse,
+  ChartData,
+  Indicator,
+  IndicatorParams,
+  KeyFigure,
+  Language,
+  MapDataParams,
+  MapDataResponse,
+  Region,
+  RegionParams,
+  SearchResults,
+  Theme,
+  ThemeDetail,
+  GeoJSONData,
 } from '~/types/api';
 
 export const useApi = () => {
   const config = useRuntimeConfig();
 
-  // Créer une instance personnalisée de $fetch
+  // Instance $fetch partagee. Pas d'en-tete Content-Type sur des GET : il
+  // declenchait une requete prealable OPTIONS a chaque appel en cross-origin
+  // sans rien apporter (aucun corps n'est envoye).
   const customFetch = $fetch.create({
     baseURL: config.public.apiBase,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    // Optionnel: credentials si besoin
-    // credentials: 'include',
   });
 
-  const fetchData = async <T = any>(
-    endpoint: string, 
-    options: any = {}
-  ): Promise<ApiResponse<T>> => {
+  const fetchData = async <T = any>(endpoint: string, options: any = {}): Promise<ApiResponse<T>> => {
     try {
-      const response = await customFetch<ApiResponse<T>>(endpoint, options);
-      return response;
+      return await customFetch<ApiResponse<T>>(endpoint, options);
     } catch (error: any) {
       console.error(`API Error [${endpoint}]:`, error);
       throw error;
@@ -44,113 +44,81 @@ export const useApi = () => {
   };
 
   // Regions
-  const getRegions = async (params: RegionParams = {}) => {
-    return await customFetch<ApiResponse<Region[]>>('/regions', {
+  const getRegions = (params: RegionParams = {}) =>
+    customFetch<ApiResponse<Region[]>>('/regions', { method: 'GET', params });
+
+  const getRegion = (code: string) =>
+    customFetch<ApiResponse<Region>>(`/regions/${encodeURIComponent(code)}`, { method: 'GET' });
+
+  const getRegionChildren = (code: string) =>
+    customFetch<ApiResponse<Region[]>>(`/regions/${encodeURIComponent(code)}/children`, { method: 'GET' });
+
+  const getRegionIndicators = (code: string, params: IndicatorParams = {}) =>
+    customFetch<ApiResponse<Indicator[]>>(`/regions/${encodeURIComponent(code)}/indicators`, {
       method: 'GET',
       params,
     });
-  };
-
-  const getRegion = async (code: string) => {
-    return await customFetch<ApiResponse<Region>>(`/regions/${code}`, {
-      method: 'GET',
-    });
-  };
-
-  const getRegionChildren = async (code: string) => {
-    return await customFetch<ApiResponse<Region[]>>(`/regions/${code}/children`, {
-      method: 'GET',
-    });
-  };
-
-  const getRegionIndicators = async (code: string, params: IndicatorParams = {}) => {
-    return await customFetch<ApiResponse<Indicator[]>>(`/regions/${code}/indicators`, {
-      method: 'GET',
-      params,
-    });
-  };
 
   // Themes
-  const getThemes = async () => {
-    return await customFetch<ApiResponse<Theme[]>>('/themes', {
-      method: 'GET',
-    });
-  };
+  const getThemes = () => customFetch<ApiResponse<Theme[]>>('/themes', { method: 'GET' });
 
-  const getTheme = async (slug: string) => {
-    return await customFetch<ApiResponse<Theme>>(`/themes/${slug}`, {
-      method: 'GET',
-    });
-  };
+  const getTheme = (slug: string) =>
+    customFetch<ApiResponse<ThemeDetail>>(`/themes/${encodeURIComponent(slug)}`, { method: 'GET' });
 
-  const getThemeKeyFigures = async (slug: string) => {
-    return await customFetch<ApiResponse<any[]>>(`/themes/${slug}/key-figures`, {
+  const getThemeKeyFigures = (slug: string) =>
+    customFetch<ApiResponse<KeyFigure[]>>(`/themes/${encodeURIComponent(slug)}/key-figures`, {
       method: 'GET',
     });
-  };
 
   // Indicators
-  const getIndicators = async (params: IndicatorParams = {}) => {
-    return await customFetch<ApiResponse<Indicator[]>>('/indicators', {
+  const getIndicators = (params: IndicatorParams = {}) =>
+    customFetch<ApiResponse<Indicator[]>>('/indicators', { method: 'GET', params });
+
+  const getIndicatorsByTheme = (themeSlug: string, params: IndicatorParams = {}) =>
+    customFetch<ApiResponse<Indicator[]>>(`/indicators/by-theme/${encodeURIComponent(themeSlug)}`, {
       method: 'GET',
       params,
     });
-  };
 
-  const getIndicatorsByTheme = async (themeSlug: string, params: IndicatorParams = {}) => {
-    return await customFetch<ApiResponse<Indicator[]>>(`/indicators/by-theme/${themeSlug}`, {
-      method: 'GET',
-      params,
-    });
-  };
-
-  const getMapData = async (indicatorCode: string, params: MapDataParams = {}) => {
-    return await customFetch<ApiResponse<{ mapData: MapDataEntry[]; visualization?: any }>>(
-      `/indicators/map-data/${indicatorCode}`, 
+  const getMapData = (indicatorCode: string, params: MapDataParams = {}) => {
+    const { disaggregation, ...rest } = params;
+    return customFetch<ApiResponse<MapDataResponse>>(
+      `/indicators/map-data/${encodeURIComponent(indicatorCode)}`,
       {
         method: 'GET',
-        params,
-      }
-    );
-  };
-
-  const getChartData = async (indicatorCode: string, params: Record<string, any> = {}) => {
-    return await customFetch<ApiResponse<ChartDataEntry[]>>(
-      `/indicators/chart-data/${indicatorCode}`, 
-      {
-        method: 'GET',
-        params,
-      }
-    );
-  };
-
-  const compareIndicator = async (indicator: string, regions: string[]) => {
-    return await customFetch<ApiResponse<any>>('/indicators/compare', {
-      method: 'GET',
-      params: { 
-        indicator, 
-        regions: regions.join(',') 
+        params: {
+          ...rest,
+          ...(disaggregation ? { disaggregation: JSON.stringify(disaggregation) } : {}),
+        },
       },
-    });
+    );
   };
+
+  const getChartData = (indicatorCode: string, params: Record<string, any> = {}) =>
+    customFetch<ApiResponse<ChartData>>(`/indicators/chart-data/${encodeURIComponent(indicatorCode)}`, {
+      method: 'GET',
+      params,
+    });
+
+  const compareIndicator = (indicator: string, regions: string[]) =>
+    customFetch<ApiResponse<Indicator[]>>('/indicators/compare', {
+      method: 'GET',
+      params: { indicator, regions: regions.join(',') },
+    });
 
   // Geo
-  const getGeoJSON = async (level: AdminLevel = 'region') => {
-    return await customFetch<ApiResponse<GeoJSONData>>(`/geo/${level}`, {
-      method: 'GET',
-    });
-  };
+  const getGeoJSON = (level: AdminLevel = 'region') =>
+    customFetch<ApiResponse<GeoJSONData>>(`/geo/${level}`, { method: 'GET' });
 
   // Search
-  const search = async (query: string, lang: Language = 'fr') => {
-    return await customFetch<ApiResponse<SearchResult[]>>('/search', {
+  const search = (query: string, lang: Language = 'fr') =>
+    customFetch<ApiResponse<SearchResults>>('/search', {
       method: 'GET',
       params: { q: query, lang },
     });
-  };
 
   return {
-    customFetch, // Exposer customFetch pour des appels personnalisés
+    customFetch,
     fetchData,
     getRegions,
     getRegion,
