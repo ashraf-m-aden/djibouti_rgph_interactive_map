@@ -2,7 +2,9 @@
   "app": {
     "title": "RGPH 2024 - Djibouti",
     "fullTitle": "General Population and Housing Census 2024",
-    "subtitle": "Republic of Djibouti"
+    "subtitle": "Republic of Djibouti",
+    "census": "Census",
+    "censusCode": "RGPH-3 · 2024"
   },
   "nav": {
     "home": "Home",

@@ -126,7 +126,9 @@ const legendTitle = computed(() => props.indicatorName || t('map.population'));
 // La rampe etait codee en dur dans le composant ET dans le CSS de la legende,
 // alors que l'API fournit visualization.colorScale par indicateur
 // (cf. AUDIT F-17). On interpole desormais entre les deux bornes recues.
-const DEFAULT_SCALE: ColorScale = { min: '#FEE5D9', max: '#A50F15' };
+// Rampe derivee du bleu institutionnel (cf. charte INSTAD) plutot qu'une
+// teinte arbitraire : la donnee et la marque partagent la meme couleur.
+const DEFAULT_SCALE: ColorScale = { min: '#E6E9F2', max: '#00185F' };
 const STEPS = 7;
 
 const hexToRgb = (hex: string): [number, number, number] => {
@@ -155,7 +157,17 @@ const palette = computed<string[]>(() => {
   });
 });
 
-const legendGradient = computed(() => `linear-gradient(to right, ${palette.value.join(', ')})`);
+// Legende a paliers nets plutot qu'un degrade lisse : registre "carte
+// administrative officielle" (classes de valeurs), pas decoratif.
+const legendGradient = computed(() => {
+  const n = palette.value.length;
+  const stops = palette.value.map((color, i) => {
+    const from = (i / n) * 100;
+    const to = ((i + 1) / n) * 100;
+    return `${color} ${from}%, ${color} ${to}%`;
+  });
+  return `linear-gradient(to right, ${stops.join(', ')})`;
+});
 
 const NO_DATA_COLOR = '#E0E0E0';
 
@@ -430,58 +442,70 @@ onUnmounted(() => {
 
 :deep(.region-label__value) {
   font-size: 14px;
-  color: #A50F15;
+  color: #00185F;
 }
 
+// --- Panneaux techniques -------------------------------------------------
+// Bordures franches et bandeau d'en-tete plutot que cartes flottantes a
+// ombre : registre "legende de carte administrative", pas widget d'app.
 .map-controls {
   position: absolute;
-  top: 20px;
-  left: 20px;
+  top: 16px;
+  left: 16px;
   z-index: 1000;
   background: white;
-  padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: 1px solid #D7DBE6;
+  box-shadow: 0 1px 2px rgba(16, 19, 28, 0.06);
 }
 
 [dir="rtl"] .map-controls {
   left: auto;
-  right: 20px;
+  right: 16px;
 }
 
 .rgph-badge {
-  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #D7DBE6;
 }
 
 .rgph-badge__year {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 1.3rem;
+  font-weight: 600;
   color: #00185F;
   display: block;
 }
 
 .rgph-badge__text {
-  font-size: 0.875rem;
-  color: #666;
+  font-size: 0.78rem;
+  color: #5B6478;
+}
+
+.map-level-selector {
+  padding: 0.75rem 1rem;
 }
 
 .map-level-selector__label {
   display: block;
-  font-weight: 600;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   margin-bottom: 0.5rem;
-  color: #333;
+  color: #8690A6;
 }
 
 .map-level-selector__btn {
   display: block;
   width: 100%;
-  padding: 0.5rem 1rem;
-  margin-bottom: 0.5rem;
-  border: 1px solid #ddd;
+  padding: 0.45rem 0.9rem;
+  margin-bottom: 0.4rem;
+  border: 1px solid #D7DBE6;
   background: white;
-  border-radius: 4px;
+  border-radius: 2px;
   cursor: pointer;
   text-align: left;
+  font-size: 0.82rem;
   transition: all 0.2s;
 }
 
@@ -490,7 +514,8 @@ onUnmounted(() => {
 }
 
 .map-level-selector__btn:hover {
-  background: #f5f5f5;
+  border-color: #00185F;
+  color: #00185F;
 }
 
 .map-level-selector__btn--active {
@@ -501,29 +526,27 @@ onUnmounted(() => {
 
 .map-toolbar {
   position: absolute;
-  top: 20px;
-  right: 20px;
+  top: 16px;
+  right: 16px;
   z-index: 1000;
   background: white;
-  padding: 0.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: 1px solid #D7DBE6;
+  box-shadow: 0 1px 2px rgba(16, 19, 28, 0.06);
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
 }
 
 [dir="rtl"] .map-toolbar {
   right: auto;
-  left: 20px;
+  left: 16px;
 }
 
 .map-toolbar__btn {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   border: none;
+  border-bottom: 1px solid #D7DBE6;
   background: white;
-  border-radius: 4px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -531,8 +554,12 @@ onUnmounted(() => {
   transition: all 0.2s;
 }
 
+.map-toolbar__btn:last-child {
+  border-bottom: none;
+}
+
 .map-toolbar__btn:hover:not(:disabled) {
-  background: #f5f5f5;
+  background: #E6E9F2;
 }
 
 .map-toolbar__btn:disabled {
@@ -541,44 +568,65 @@ onUnmounted(() => {
 }
 
 .map-toolbar__btn .mdi {
-  font-size: 20px;
-  color: #333;
+  font-size: 18px;
+  color: #10131C;
+}
+
+.map-toolbar__btn:hover:not(:disabled) .mdi {
+  color: #00185F;
 }
 
 .map-legend {
   position: absolute;
-  bottom: 20px;
-  right: 20px;
+  bottom: 16px;
+  right: 16px;
   z-index: 1000;
   background: white;
-  padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  min-width: 200px;
+  border: 1px solid #D7DBE6;
+  box-shadow: 0 1px 2px rgba(16, 19, 28, 0.06);
+  min-width: 220px;
 }
 
 [dir="rtl"] .map-legend {
   right: auto;
-  left: 20px;
+  left: 16px;
 }
 
 .map-legend__title {
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-  color: #333;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #00185F;
+  background: #E6E9F2;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #D7DBE6;
+}
+
+.map-legend__gradient {
+  padding: 0 1rem;
+
+  &:first-of-type {
+    padding-top: 0.85rem;
+  }
+
+  &:last-of-type {
+    padding-bottom: 0.85rem;
+  }
 }
 
 .map-legend__gradient-bar {
-  height: 20px;
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
+  height: 14px;
+  border: 1px solid #D7DBE6;
+  margin-bottom: 0.4rem;
 }
 
 .map-legend__gradient-labels {
   display: flex;
   justify-content: space-between;
-  font-size: 0.75rem;
-  color: #666;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.68rem;
+  color: #5B6478;
 }
 
 @media print {

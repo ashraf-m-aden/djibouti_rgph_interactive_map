@@ -188,8 +188,9 @@ watch(regionCode, loadRegionData);
 }
 
 .region-page__header h1 {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 1.6rem;
+  font-weight: 600;
   color: #1A1D26;
 }
 
@@ -214,51 +215,56 @@ watch(regionCode, loadRegionData);
   cursor: pointer;
   border: 1px solid #d0d0d0;
   background: white;
-  border-radius: 4px;
+  border-radius: 2px;
+  font-family: 'Public Sans', sans-serif;
 }
 
 .key-figures {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+  border: 1px solid #d7dbe6;
   margin-bottom: 2rem;
 }
 
 .key-figure-card {
   background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 1.25rem 1.4rem;
+  border-left: 1px solid #d7dbe6;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.key-figure-card:first-child {
+  border-left: none;
 }
 
 .key-figure-card__icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  border-radius: 2px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.9rem;
 }
 
 .key-figure-card__icon .mdi {
-  font-size: 24px;
+  font-size: 18px;
   color: white;
 }
 
 .key-figure-card__value {
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 1.4rem;
+  font-weight: 500;
   color: #1A1D26;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
 }
 
 .key-figure-card__label {
-  font-size: 0.875rem;
+  font-size: 0.78rem;
   color: #5A5F72;
 }
 

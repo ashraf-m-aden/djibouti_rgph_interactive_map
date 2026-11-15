@@ -1,10 +1,19 @@
 <template>
+  <div class="letterhead-rule" aria-hidden="true"><span></span><span></span><span></span></div>
+
   <header class="app-header">
-    <div class="app-header__logo">
-      <div class="app-header__mark">INSTAD</div>
-      <span class="app-header__logo-text">
-        {{ $t('app.fullTitle') }}<br />{{ $t('app.subtitle') }}
-      </span>
+    <div class="app-header__brand">
+      <div class="app-header__mark" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 26 26">
+          <polygon points="13,2 24,13 13,24 2,13" fill="none" stroke="#00185F" stroke-width="1.6"></polygon>
+          <circle cx="13" cy="13" r="3" fill="#00185F"></circle>
+        </svg>
+      </div>
+      <div class="app-header__text">
+        <span class="app-header__eyebrow">{{ $t('app.subtitle') }}</span>
+        <span class="app-header__name">INSTAD</span>
+        <span class="app-header__tagline">{{ $t('app.fullTitle') }}</span>
+      </div>
     </div>
 
     <!-- Les entrees "Chiffres cles", "Tableaux" et "Concepts" pointaient
@@ -17,6 +26,10 @@
     </nav>
 
     <div class="app-header__actions">
+      <div class="census-badge">
+        <span class="census-badge__label">{{ $t('app.census') }}</span>
+        <span class="census-badge__code">{{ $t('app.censusCode') }}</span>
+      </div>
       <LanguageSwitcher />
     </div>
   </header>
@@ -31,18 +44,13 @@ const isHome = computed(() => route.path === '/' || route.path === '');
 </script>
 
 <style scoped>
-.app-header__mark {
-  width: 48px;
-  height: 40px;
-  background: #00185F;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 700;
-  font-size: 0.6rem;
-  letter-spacing: 0.02em;
-  flex-shrink: 0;
+.census-badge {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .census-badge {
+    display: flex;
+  }
 }
 </style>

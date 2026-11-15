@@ -173,8 +173,8 @@ onUnmounted(() => {
 <style scoped>
 .app-sidebar {
   width: 280px;
-  background: #f8f9fa;
-  border-right: 1px solid #e0e0e0;
+  background: #f8f9fc;
+  border-right: 1px solid #d7dbe6;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -182,28 +182,30 @@ onUnmounted(() => {
 
 [dir="rtl"] .app-sidebar {
   border-right: none;
-  border-left: 1px solid #e0e0e0;
+  border-left: 1px solid #d7dbe6;
 }
 
 .app-sidebar__header {
-  padding: 1rem 1.5rem;
+  padding: 1rem 1.5rem 0.6rem;
   font-weight: 700;
-  font-size: 1.1rem;
-  color: #1A1D26;
-  border-bottom: 1px solid #e0e0e0;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8690a6;
 }
 
 .app-sidebar__search {
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid #e0e0e0;
+  padding: 0 1.5rem 1rem;
 }
 
 .app-sidebar__search input {
   width: 100%;
-  padding: 0.5rem 1rem;
-  border: 1px solid #d0d0d0;
-  border-radius: 4px;
-  font-size: 0.9rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d7dbe6;
+  border-radius: 2px;
+  font-size: 0.85rem;
+  font-family: 'Public Sans', sans-serif;
+  background: white;
   outline: none;
 }
 
@@ -290,29 +292,41 @@ onUnmounted(() => {
 }
 
 .theme-tree__item {
-  padding: 0.75rem 1.5rem;
+  padding: 0.65rem 1.5rem;
   color: #5A5F72;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  border-left: 3px solid transparent;
   transition: all 0.2s;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+}
+
+[dir="rtl"] .theme-tree__item {
+  border-left: none;
+  border-right: 3px solid transparent;
 }
 
 .theme-tree__item:hover {
-  background: #e8e8e8;
+  background: white;
   color: #1A1D26;
 }
 
 .theme-tree__item--active {
-  background: #00185F;
-  color: white;
+  background: #E6E9F2;
+  border-left-color: #00185F;
+  color: #00185F;
   font-weight: 600;
 }
 
+[dir="rtl"] .theme-tree__item--active {
+  border-left-color: transparent;
+  border-right-color: #00185F;
+}
+
 .theme-tree__item--active:hover {
-  background: #000D33;
+  background: #E6E9F2;
 }
 
 .mdi {
